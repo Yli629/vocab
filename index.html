@@ -191,6 +191,29 @@ body.tex-noise #tex{
 
 .confuse{font-size:13px;color:#9fb4d8;line-height:1.5;border-top:1px dashed rgba(148,180,255,.18);padding-top:8px;margin-top:4px;max-width:92%}
 .confuse b{color:#fca5a5;font-weight:600}
+
+/* 进度环 */
+.ring{position:relative;width:40px;height:40px;flex:0 0 40px}
+.ring svg{transform:rotate(-90deg);width:40px;height:40px}
+.ring .bgc{fill:none;stroke:rgba(255,255,255,.08);stroke-width:3.4}
+.ring .fgc{fill:none;stroke:url(#ringGrad);stroke-width:3.4;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
+.ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--dim);font-variant-numeric:tabular-nums}
+/* 单词衬线 */
+.word{font-family:Georgia,"Times New Roman","Songti SC",serif;font-weight:600;letter-spacing:0}
+/* 切换动画 */
+@keyframes slidein{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.card.slidein{animation:slidein .3s cubic-bezier(.22,1,.36,1)}
+/* 撒花 */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+/* 一周条 */
+.week{display:flex;gap:6px;margin-top:8px}
+.week i{flex:1;height:26px;border-radius:6px;background:rgba(255,255,255,.06);position:relative;overflow:hidden}
+.week i b{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#5eead4,#38bdf8);opacity:.85}
+.week i em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#cfe0ff;font-style:normal}
+/* 标志 */
+.logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#5eead4,#38bdf8);display:inline-flex;align-items:center;justify-content:center;color:#04241f;font-weight:800;font-size:14px;letter-spacing:-.5px}
+.brandRow{display:flex;align-items:center;justify-content:center;gap:10px}
+
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .card.pop{animation:pop .32s ease}
@@ -205,10 +228,11 @@ body.tex-noise #tex{
 </head>
 <body>
 <div id="tex" aria-hidden="true"></div>
+<canvas id="confetti"></canvas>
 
 <div class="intro" id="intro">
   <div class="introInner">
-    <div class="brand">Vocab Drill</div>
+    <div class="brandRow"><span class="logo">V</span><div class="brand">Vocab Drill</div></div>
     <div class="sub" id="introSub">—</div>
     <div class="deckList" id="deckList"></div>
     <div class="modeRow" id="modeRow"></div>
@@ -218,7 +242,12 @@ body.tex-noise #tex{
 </div>
 
 <header>
-  <span class="pill" id="todayCount">0 / 0</span>
+  <div class="ring">
+    <svg viewBox="0 0 40 40"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+      <circle class="bgc" cx="20" cy="20" r="16"></circle>
+      <circle class="fgc" id="ringFg" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle>
+    </svg><span id="todayCount">0/0</span>
+  </div>
   <span class="pill" id="countdown">—</span>
   <button class="pill" id="btnWrong" style="cursor:pointer">0</button>
   <span class="grow"></span>
@@ -226,7 +255,6 @@ body.tex-noise #tex{
   <button id="btnHome" class="pill" style="cursor:pointer">⌂</button>
   <button id="btnMenu" style="background:none;color:var(--dim);font-size:20px;padding:4px 8px;border:0">☰</button>
 </header>
-<div class="bar"><i id="barFill"></i></div>
 <main>
   <div class="card" id="card">
     <div class="word" id="word">…</div>
@@ -251,6 +279,7 @@ body.tex-noise #tex{
   <label><span data-i18n="deck">词库</span><span id="deckBtns"></span></label>
   <label><span data-i18n="mode">模式</span><span id="modeBtns"></span></label>
   <label><span data-i18n="texture">纹理</span><span id="texBtns"></span></label>
+  <label><span>音效</span><button class="segbtn" id="btnSound">关</button></label>
   <label><span data-i18n="examDate">考试日期</span><input type="date" id="examDate"></label>
   <label><span data-i18n="newPerDay">每天新词</span><input type="number" id="newPerDay" min="0" max="200" step="5"></label>
   <label><span data-i18n="todayNew">今天已学</span><span id="todayNew">0</span></label>
@@ -272,8 +301,13 @@ body.tex-noise #tex{
     <button id="btnImport" data-i18n="import">导入</button>
   </div>
 
+  <h2 style="margin-top:20px">最近 7 天</h2>
+  <div class="week" id="week"></div>
   <h2 style="margin-top:20px"><span data-i18n="allWords">全部单词</span> <span class="pill" id="allCount"></span></h2>
   <div class="list" id="list"></div>
+  <div style="margin-top:18px;font-size:12px;color:#5b6b86;line-height:1.7">
+    Vocab Drill · 数据只存在本地 · MIT License · <a href="https://github.com/Yli629/vocab" style="color:#7dd3fc">GitHub</a>
+  </div>
   <button class="close" id="btnClose" data-i18n="close">关闭</button>
 </div>
 
@@ -357,9 +391,9 @@ let mode='daily';
 function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return todayStr(d);}
 function load(){
-  if(location.search.indexOf('fresh=1')>=0) return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03'},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
+  if(location.search.indexOf('fresh=1')>=0) return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03',sound:false},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
   try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
-  return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03'},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
+  return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03',sound:false},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
@@ -495,7 +529,9 @@ function render(){
   els('progressTxt').textContent=`${learned} / ${total}`;
   els('allCount').textContent=total;
   els('todayCount').textContent=`${sessionDone} / ${sessionTarget}`;
-  els('barFill').style.width=sessionTarget?`${Math.min(100,sessionDone/sessionTarget*100)}%`:'100%';
+  const ring=els('ringFg');
+  if(ring){const C=100.5;const p=sessionTarget?Math.min(1,sessionDone/sessionTarget):1;ring.style.strokeDashoffset=String(C*(1-p));ring.style.stroke=(p>=1)?'#fbbf24':'';}
+  els('todayCount').textContent=`${sessionDone}/${sessionTarget}`;
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
   els('examDate').value=state.settings.examDate||'';
@@ -504,6 +540,7 @@ function render(){
   els('btnWrong').textContent=t('wrongBtn',{n:wn});
   els('btnWrong').style.borderColor=(mode==='wrong')?'var(--accent)':'#24314f';
   els('btnWrong').style.color=(mode==='wrong')?'var(--accent)':'var(--dim)';
+  const sb=els('btnSound'); if(sb){sb.textContent=soundOn()?'开':'关';sb.dataset.on=soundOn()?'1':'0';}
 
   buildDeckButtons();buildModeButtons();
 
@@ -531,8 +568,10 @@ function render(){
     els('btnNext').textContent=(mode==='wrong')?'再刷一遍':'再来 10 个';
     els('btnNext').style.display='block';
     els('btnSkip').style.display='none';
+    if(!window.__confettiDone){window.__confettiDone=true;confetti();beep('ok');}
     return;
   }
+  window.__confettiDone=false;
 
   const w=queue[idx],item=pickWord(w),qm=quizMode();
   const isSpell=(qm==='spell'),isSwipe=(qm==='swipe');
@@ -575,11 +614,79 @@ function render(){
   }
 }
 
+let AC=null;
+function soundOn(){return !!(state.settings&&state.settings.sound);}
+function beep(kind){
+  if(!soundOn())return;
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    const t0=AC.currentTime;
+    const f=kind==='ok'?660:kind==='bad'?220:440;
+    o.type='sine';o.frequency.setValueAtTime(f,t0);
+    if(kind==='ok')o.frequency.exponentialRampToValueAtTime(990,t0+0.09);
+    if(kind==='bad')o.frequency.exponentialRampToValueAtTime(165,t0+0.14);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(0.05,t0+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+(kind==='bad'?0.18:0.16));
+    o.start(t0);o.stop(t0+0.2);
+  }catch(e){}
+}
+
+let confettiRun=null;
+function confetti(){
+  const cv=els('confetti'); if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=innerWidth*dpr; cv.height=innerHeight*dpr;
+  cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const colors=['#5eead4','#38bdf8','#a7f3d0','#fbbf24'];
+  const parts=Array.from({length:90},()=>({
+    x:innerWidth/2+(Math.random()-0.5)*80, y:innerHeight*0.35,
+    vx:(Math.random()-0.5)*9, vy:-Math.random()*10-3,
+    r:2+Math.random()*3, c:colors[(Math.random()*colors.length)|0], a:1, rot:Math.random()*6
+  }));
+  if(confettiRun) cancelAnimationFrame(confettiRun);
+  const t0=performance.now();
+  function step(t){
+    const dt=Math.min(32,t-t0); t0=t;
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    for(const p of parts){
+      p.vy+=0.42; p.x+=p.vx; p.y+=p.vy; p.a-=0.008; p.rot+=0.15;
+      if(p.a<=0) continue;
+      ctx.save();ctx.globalAlpha=Math.max(0,p.a);ctx.fillStyle=p.c;
+      ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);ctx.restore();
+    }
+    if(parts.some(p=>p.a>0)) confettiRun=requestAnimationFrame(step);
+    else {ctx.clearRect(0,0,innerWidth,innerHeight);confettiRun=null;}
+  }
+  confettiRun=requestAnimationFrame(step);
+}
+
+function renderWeek(){
+  const el=els('week'); if(!el)return;
+  el.innerHTML='';
+  const hist=state.history||{};
+  for(let i=6;i>=0;i--){
+    const ds=todayStr(new Date(Date.now()-i*86400000));
+    const h=hist[ds]||{seen:0,new:0};
+    const max=Math.max(10, ...Object.values(hist).map(x=>x.seen||0));
+    const pct=Math.min(100,Math.round((h.seen/max)*100));
+    const d=document.createElement('i');
+    d.innerHTML=`<b style="height:${pct}%"></b><em>${['日','一','二','三','四','五','六'][new Date(ds+'T00:00:00').getDay()]}</em>`;
+    el.appendChild(d);
+  }
+}
+
 function flash(right){
   const c=els('card');
   c.classList.remove('pop','shake');
   void c.offsetWidth;
   c.classList.add(right?'pop':'shake');
+  beep(right?'ok':'bad');
   if(navigator.vibrate) navigator.vibrate(right?12:[18,40,18]);
 }
 
@@ -663,6 +770,7 @@ function next(){
   if(idx>=queue.length){ addMore(10); return; }
   if(!answered)return;
   answered=false;chosenText='';peek=false;idx++;render();
+  const c=els('card');c.classList.remove('slidein');void c.offsetWidth;c.classList.add('slidein');
 }
 function addMore(n){
   if(mode==='wrong'){ queue=shuffle(wrongWords()); sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;render();return; }
@@ -735,6 +843,9 @@ function openSheet(){
   renderList();
   els('io').value='';
   els('customInput').value=(state.custom||[]).map(x=>[x.w,x.p,x.z].filter(Boolean).join(' | ')).join('\n');
+  els('btnSound').textContent=soundOn()?'开':'关';
+  els('btnSound').dataset.on=soundOn()?'1':'0';
+  renderWeek();
 }
 els('btnClose').onclick=()=>els('sheet').classList.remove('on');
 
@@ -772,6 +883,12 @@ els('btnImport').onclick=()=>{
   catch(err){alert(t('importFail')+err.message);}
 };
 
+els('btnSound').onclick=()=>{
+  state.settings.sound=!soundOn();save();
+  els('btnSound').textContent=soundOn()?'开':'关';
+  els('btnSound').dataset.on=soundOn()?'1':'0';
+  if(soundOn())beep('ok');
+};
 els('btnWrong').onclick=()=>{mode=(mode==='wrong')?'daily':'wrong';buildQueue();render();};
 
 function renderList(){
