@@ -222,6 +222,7 @@ body.tex-noise #tex{
       <button class="segbtn" data-mode="en2zh">英→中</button>
       <button class="segbtn" data-mode="zh2en">中→英</button>
       <button class="segbtn" data-mode="spell">拼写</button>
+      <button class="segbtn" data-mode="swipe">快刷</button>
     </div>
 
     <button class="startBtn" id="btnStart">开始</button>
@@ -261,6 +262,7 @@ body.tex-noise #tex{
       <button class="segbtn" data-mode="en2zh">英→中</button>
       <button class="segbtn" data-mode="zh2en">中→英</button>
       <button class="segbtn" data-mode="spell">拼写</button>
+      <button class="segbtn" data-mode="swipe">快刷</button>
     </span>
   </label>
   <label>纹理
@@ -303,14 +305,14 @@ const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
 
 let state=load();
-let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='';
+let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='',peek=false;
 let mode='daily';
 
 function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return todayStr(d);}
 function load(){
   try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
-  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid'},day:{date:todayStr(),newCount:0},words:{}};
+  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid'},day:{date:todayStr(),newCount:0},words:{},history:{}};
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
@@ -329,6 +331,7 @@ function deckWords(){
   return DECK.filter(x=>x[3]===tag);
 }
 function pickWord(w){return DECK.find(x=>x[0]===w);}
+const REAL=new Set(SAT910.map(x=>x[0].toLowerCase()));
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 function wrongWords(){
@@ -345,8 +348,10 @@ function buildQueue(){
   for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=t)due.push(w);}
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
   const remainingNew=Math.max(0,dailyNew()-state.day.newCount);
-  const fresh=[];
-  for(const [w] of deckWords()){if(fresh.length>=remainingNew)break;if(!state.words[w])fresh.push(w);}
+  const pool=[];
+  for(const [w] of deckWords()){if(!state.words[w])pool.push(w);}
+  pool.sort((a,b)=>{const A=REAL.has(a.toLowerCase())?0:1,B=REAL.has(b.toLowerCase())?0:1;return A-B;});
+  const fresh=pool.slice(0,remainingNew);
   queue=shuffle([...due,...fresh]);
   sessionDone=0;sessionTarget=queue.length;idx=0;
 }
@@ -408,22 +413,24 @@ function render(){
   }
 
   const w=queue[idx],item=pickWord(w),qm=quizMode();
-  const isSpell=(qm==='spell');
+  const isSpell=(qm==='spell'),isSwipe=(qm==='swipe');
 
-  els('word').textContent=(qm==='en2zh')?item[0]:'';
-  els('word').style.display=(qm==='en2zh')?'block':'none';
-  els('prompt').textContent=(qm==='en2zh')?'':item[2];
-  els('prompt').style.display=(qm==='en2zh')?'none':'block';
+  els('word').textContent=(qm==='en2zh'||isSwipe)?item[0]:'';
+  els('word').style.display=(qm==='en2zh'||isSwipe)?'block':'none';
+  els('prompt').textContent=(qm==='en2zh'||isSwipe)?'':item[2];
+  els('prompt').style.display=(qm==='en2zh'||isSwipe)?'none':'block';
   els('pos').textContent=item[1];
   els('result').textContent='';els('result').className='result';
   els('meaning').textContent=item[0]+' · '+item[2];
-  els('meaning').style.display=answered?'block':'none';
+  els('meaning').style.display=(answered||peek)?'block':'none';
   els('btnNext').style.display=answered?'block':'none';
-  els('btnSkip').style.display=answered?'none':'block';
+  els('btnSkip').style.display=(answered||isSwipe)?'none':'block';
   els('spellWrap').style.display=(isSpell&&!answered)?'flex':'none';
+  if(isSwipe&&!answered){els('result').textContent='右滑认识 · 左滑不认识 · 点一下看意思';}
 
   const box=els('opts');box.innerHTML='';
   if(isSpell){ if(!answered) setTimeout(()=>els('spellInput').focus(),50); return; }
+  if(isSwipe){ els('card').style.cursor='grab'; return; }
   if(!answered) currentOpts=makeOptions(w);
   for(const o of currentOpts){
     const b=document.createElement('button');
@@ -464,6 +471,41 @@ function checkSpell(){
   render();
 }
 
+let swX=0,swStart=0,swDragging=false;
+function swipeGrade(right){
+  if(answered)return;
+  const item=pickWord(queue[idx]);
+  answered=true;peek=false;chosenText='';
+  els('result').textContent=right?'✓ 认识':`✗ 不认识 · ${item[2]}`;
+  els('result').className='result '+(right?'ok':'bad');
+  flash(right);grade(right);render();
+}
+function initSwipe(){
+  const c=els('card');
+  c.addEventListener('pointerdown',e=>{
+    if(quizMode()!=='swipe'||answered)return;
+    swDragging=true;swStart=e.clientX;swX=0;
+    try{c.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  c.addEventListener('pointermove',e=>{
+    if(!swDragging)return;
+    swX=e.clientX-swStart;
+    c.style.transform=`translateX(${swX}px) rotate(${swX*0.03}deg)`;
+    c.style.borderColor=swX>30?'rgba(74,222,128,.75)':swX<-30?'rgba(251,113,133,.75)':'';
+  });
+  const end=()=>{
+    if(!swDragging)return;
+    swDragging=false;
+    c.style.transform='';c.style.borderColor='';
+    if(swX>70)swipeGrade(true);
+    else if(swX<-70)swipeGrade(false);
+    else if(Math.abs(swX)<8){peek=!peek;render();}
+    swX=0;
+  };
+  c.addEventListener('pointerup',end);
+  c.addEventListener('pointercancel',end);
+}
+
 function flash(right){
   const c=els('card');
   c.classList.remove('pop','shake');
@@ -481,11 +523,19 @@ function grade(right){
   if(!right){e.lv=0;e.lapses++;e.due=addDays(0);queue.push(w);sessionTarget++;}
   else{e.lv=Math.min(INTERVALS.length-1,e.lv+1);e.due=addDays(INTERVALS[e.lv]);}
   if(isNew)state.day.newCount++;
+  const t=todayStr();
+  state.history=state.history||{};
+  const h=state.history[t]||{new:0,seen:0};
+  h.seen++; if(isNew) h.new++;
+  state.history[t]=h;
+  const keys=Object.keys(state.history).sort();
+  while(keys.length>21){delete state.history[keys.shift()];}
   sessionDone++;save();
 }
 
-function next(){if(!answered)return;answered=false;chosenText='';idx++;render();}
+function next(){if(!answered)return;answered=false;chosenText='';peek=false;idx++;render();}
 
+initSwipe();
 els('btnNext').onclick=next;
 els('spellGo').onclick=checkSpell;
 els('spellInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkSpell();});
@@ -531,6 +581,20 @@ function renderList(){
     el.appendChild(d);
   }
 }
+function predict(){
+  const total=deckWords().length;
+  const learned=deckWords().filter(x=>state.words[x[0]]).length;
+  const remaining=Math.max(0,total-learned);
+  const hist=state.history||{};
+  const days=Object.keys(hist).sort().slice(-8);
+  let sum=0,n=0;
+  for(const d of days){ if(d===todayStr())continue; sum+=hist[d].new||0;n++; }
+  const avg=n?sum/n:dailyNew();
+  const need=avg>0?Math.ceil(remaining/avg):Infinity;
+  const left=Math.max(0,Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000));
+  return {remaining,avg:Math.round(avg*10)/10,need,left,ok:need<=left};
+}
+
 function deckCounts(){
   const sat=DECK.filter(x=>x[3]==='SAT').length;
   const s910=DECK.filter(x=>x[3]==='910').length;
@@ -544,7 +608,10 @@ function syncIntro(){
   els('cGre').textContent=`${c.gre} 词 · 已学 ${DECK.filter(x=>x[3]==='GRE'&&state.words[x[0]]).length}`;
   els('cAll').textContent=`${c.all} 词 · 已学 ${Object.keys(state.words).length}`;
   const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
-  els('introSub').textContent=days>0?`距 12/3 还有 ${days} 天 · 每天 ${dailyNew()} 个新词`:'考试日到了';
+  const pr=predict();
+  const base=days>0?`距 12/3 还有 ${days} 天`:'考试日到了';
+  els('introSub').textContent=base+` · 剩 ${pr.remaining} 词，按近期速度约 ${pr.need} 天`;
+  els('introSub').style.color=pr.ok?'#5eead4':'#fca5a5';
 }
 
 function showIntro(){
