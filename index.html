@@ -110,7 +110,7 @@ const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
 
 let state=load();
-let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[];
+let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='';
 let mode='daily';
 
 function todayStr(d=new Date()){
@@ -168,6 +168,7 @@ function pickOptions(word){
   for(const w of DECK){
     if(w[0]===word) continue;
     if(used.has(w[2])) continue;
+    used.add(w[2]);
     pool.push(w[2]);
   }
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
@@ -220,8 +221,12 @@ function render(){
   if(!answered) currentOpts=pickOptions(w).opts;
   for(const o of currentOpts){
     const b=document.createElement('button');
-    b.className='opt'+(answered&&o===item[2]?' correct':'');
-    b.textContent=o;b.disabled=answered;
+    let cls='opt';
+    if(answered){
+      if(o===item[2]) cls+=' correct';
+      else if(o===chosenText) cls+=' wrong';
+    }
+    b.className=cls;b.textContent=o;b.disabled=answered;
     if(!answered) b.onclick=()=>choose(o);
     box.appendChild(b);
   }
@@ -232,8 +237,9 @@ function choose(o){
   const w=queue[idx];
   const item=DECK.find(x=>x[0]===w);
   answered=true;
+  chosenText=o;
   const right=(o===item[2]);
-  els('result').textContent=right?'✓ 对了':'✗ 记错了';
+  els('result').textContent=right?'✓ 对了':`✗ 记错了 · 正确：${item[2]}`;
   els('result').className='result '+(right?'ok':'bad');
   grade(right?'ok':'bad',right);
   render();
@@ -259,7 +265,7 @@ function grade(kind,right){
 
 function next(){
   if(!answered) return;
-  answered=false;idx++;
+  answered=false;chosenText='';idx++;
   render();
 }
 
