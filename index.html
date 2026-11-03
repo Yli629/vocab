@@ -12,44 +12,47 @@ html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC",system-ui,sans-serif;display:flex;flex-direction:column;min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #1e2a44;flex-wrap:wrap}
 header .grow{flex:1}
-.pill{font-size:12px;color:var(--dim);border:1px solid #24314f;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill{font-size:12px;color:var(--dim);border:1px solid #24314f;border-radius:999px;padding:3px 10px;white-space:nowrap;background:none}
 .bar{height:4px;background:#1e2a44;border-radius:999px;overflow:hidden;margin:0 14px}
 .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
 main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14px;gap:12px}
-.card{background:var(--card);border:1px solid #1e2a44;border-radius:20px;padding:26px 20px;min-height:170px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px}
-.word{font-size:38px;font-weight:700;letter-spacing:.5px;word-break:break-word}
+.card{background:var(--card);border:1px solid #1e2a44;border-radius:20px;padding:24px 20px;min-height:160px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px}
+.word{font-size:36px;font-weight:700;letter-spacing:.5px;word-break:break-word}
+.prompt{font-size:26px;font-weight:600;line-height:1.35}
 .pos{color:var(--dim);font-size:14px}
-.result{font-size:18px;font-weight:600;min-height:26px}
+.result{font-size:16px;font-weight:600;min-height:24px;line-height:1.4}
 .result.ok{color:var(--ok)}.result.bad{color:var(--bad)}
-.meaning{font-size:20px;color:var(--accent);line-height:1.45}
-.opts{display:grid;grid-template-columns:1fr;gap:10px}
-.opt{width:100%;text-align:left;background:#182541;color:var(--ink);border:1px solid #24314f;border-radius:14px;padding:15px 16px;font:16px/1.4 inherit;cursor:pointer;transition:.15s}
-.opt:active{transform:scale(.99)}
+.meaning{font-size:18px;color:var(--accent);line-height:1.45}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;text-align:left;background:#182541;color:var(--ink);border:1px solid #24314f;border-radius:14px;padding:14px 16px;font:16px/1.4 inherit;cursor:pointer}
 .opt.correct{background:#14532d;border-color:#22c55e;color:#dcfce7}
 .opt.wrong{background:#7f1d1d;border-color:#ef4444;color:#fee2e2}
 .opt:disabled{cursor:default}
-.next{background:var(--accent);color:#06231e;font-weight:700;border:0;border-radius:14px;padding:16px;font:16px inherit;cursor:pointer}
-.skip{background:none;border:0;color:#5b6b86;font:13px inherit;padding:10px;text-decoration:underline;cursor:pointer}
-.empty{text-align:center;color:var(--dim);padding:40px 0}
+.next{background:var(--accent);color:#06231e;font-weight:700;border:0;border-radius:14px;padding:15px;font:16px inherit;cursor:pointer}
+.skip{background:none;border:0;color:#5b6b86;font:13px inherit;padding:8px;text-decoration:underline;cursor:pointer}
+.spell{display:flex;gap:8px}
+.spell input{flex:1;background:#0b1424;border:1px solid #24314f;color:var(--ink);border-radius:12px;padding:14px;font:18px/1.2 inherit}
+.spell button{background:var(--accent);color:#06231e;border:0;border-radius:12px;padding:0 18px;font:16px inherit;font-weight:700}
 .sheet{position:fixed;inset:0;background:#0b1220ee;display:none;flex-direction:column;padding:20px;overflow:auto;z-index:20}
 .sheet.on{display:flex}
-.sheet h2{margin:0 0 12px;font-size:18px}
-.sheet label{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1e2a44;font-size:15px}
-.sheet input[type=number]{width:80px;background:#111c33;border:1px solid #24314f;color:var(--ink);border-radius:10px;padding:8px;font:inherit;text-align:center}
+.sheet h2{margin:0 0 10px;font-size:17px}
+.sheet label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #1e2a44;font-size:15px;flex-wrap:wrap}
+.sheet input[type=number]{width:76px;background:#111c33;border:1px solid #24314f;color:var(--ink);border-radius:10px;padding:8px;font:inherit;text-align:center}
 .sheet .close{margin-top:16px;background:#1a2740;color:var(--ink);border:0;border-radius:12px;padding:14px}
-.sheet textarea{width:100%;height:110px;background:#111c33;border:1px solid #24314f;color:var(--ink);border-radius:12px;padding:10px;font:14px/1.4 ui-monospace,monospace}
-.list{max-height:50vh;overflow:auto;margin-top:10px}
+.sheet textarea{width:100%;height:100px;background:#111c33;border:1px solid #24314f;color:var(--ink);border-radius:12px;padding:10px;font:13px/1.4 ui-monospace,monospace}
+.list{max-height:45vh;overflow:auto;margin-top:10px}
 .list div{padding:8px 0;border-bottom:1px solid #16223a;font-size:14px}
 .list b{color:var(--accent)}
 .row{display:flex;gap:10px}
 .row button{flex:1;background:#1a2740;color:var(--ink);border:0;border-radius:12px;padding:12px}
+.segbtn{background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 12px;font:13px inherit;margin-left:6px}
 </style>
 </head>
 <body>
 <header>
   <span class="pill" id="todayCount">0 / 0</span>
   <span class="pill" id="countdown">—</span>
-  <button class="pill" id="btnWrong" style="background:none;cursor:pointer">错词 0</button>
+  <button class="pill" id="btnWrong" style="cursor:pointer">错词 0</button>
   <span class="grow"></span>
   <span class="pill" id="totalCount">—</span>
   <button id="btnMenu" style="background:none;color:var(--dim);font-size:20px;padding:4px 8px;border:0">☰</button>
@@ -58,11 +61,16 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14
 <main>
   <div class="card">
     <div class="word" id="word">加载中…</div>
+    <div class="prompt" id="prompt" style="display:none"></div>
     <div class="pos" id="pos"></div>
     <div class="result" id="result"></div>
     <div class="meaning" id="meaning" style="display:none"></div>
   </div>
   <div class="opts" id="opts"></div>
+  <div class="spell" id="spellWrap" style="display:none">
+    <input id="spellInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入英文单词">
+    <button id="spellGo">检查</button>
+  </div>
   <button class="next" id="btnNext" style="display:none">下一个</button>
   <button class="skip" id="btnSkip">不认识，直接看答案</button>
 </main>
@@ -71,22 +79,29 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14
   <h2>设置</h2>
   <label>词库
     <span>
-      <button class="deckbtn" data-deck="all" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">全部</button>
-      <button class="deckbtn" data-deck="sat" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">SAT</button>
-      <button class="deckbtn" data-deck="gre" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">GRE</button>
+      <button class="segbtn" data-deck="all">全部</button>
+      <button class="segbtn" data-deck="sat">SAT</button>
+      <button class="segbtn" data-deck="gre">GRE</button>
+    </span>
+  </label>
+  <label>模式
+    <span>
+      <button class="segbtn" data-mode="en2zh">英→中</button>
+      <button class="segbtn" data-mode="zh2en">中→英</button>
+      <button class="segbtn" data-mode="spell">拼写</button>
     </span>
   </label>
   <label>每天新词 <input type="number" id="newPerDay" min="0" max="200" step="5"></label>
   <label>今天已学 <span id="todayNew">0</span></label>
   <label>总进度 <span id="progressTxt">—</span></label>
   <label>重置全部进度 <button id="btnReset" style="background:#7f1d1d;color:#fee2e2;padding:8px 14px;border:0;border-radius:10px">重置</button></label>
-  <h2 style="margin-top:22px">导出 / 导入</h2>
+  <h2 style="margin-top:20px">导出 / 导入</h2>
   <textarea id="io" placeholder="进度 JSON"></textarea>
   <div class="row" style="margin-top:10px">
     <button id="btnExport">导出</button>
     <button id="btnImport">导入</button>
   </div>
-  <h2 style="margin-top:22px">全部单词 <span class="pill" id="allCount"></span></h2>
+  <h2 style="margin-top:20px">全部单词 <span class="pill" id="allCount"></span></h2>
   <div class="list" id="list"></div>
   <button class="close" id="btnClose">关闭</button>
 </div>
@@ -99,13 +114,8 @@ const DECK=(function(){
   for(const x of GRE){if(!seen.has(x[0]))out.push([...x,'GRE']);}
   return out;
 })();
-function deckWords(){
-  const d=(state.settings&&state.settings.deck)||'all';
-  if(d==='all')return DECK;
-  const tag=(d==='sat')?'SAT':'GRE';
-  return DECK.filter(x=>x[3]===tag);
-}
-const KEY='vocab_srs_v2';
+
+const KEY='vocab_srs_v3';
 const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
 
@@ -113,119 +123,120 @@ let state=load();
 let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='';
 let mode='daily';
 
-function todayStr(d=new Date()){
-  const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
-  return x.toISOString().slice(0,10);
-}
+function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return todayStr(d);}
-
 function load(){
-  try{const raw=localStorage.getItem(KEY);if(raw)return JSON.parse(raw);}catch(e){}
-  return {v:2,settings:{newPerDay:40},day:{date:todayStr(),newCount:0},words:{}};
+  try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
+  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh'},day:{date:todayStr(),newCount:0},words:{}};
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
+function quizMode(){return (state.settings&&state.settings.mode)||'en2zh';}
+function deckWords(){
+  const d=(state.settings&&state.settings.deck)||'all';
+  if(d==='all')return DECK;
+  return DECK.filter(x=>x[3]===(d==='sat'?'SAT':'GRE'));
+}
+function pickWord(w){return DECK.find(x=>x[0]===w);}
 
 function wrongWords(){
-  return deckWords()
-    .filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
+  return deckWords().filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
     .map(([w])=>w)
-    .sort((a,b)=>{
-      const A=state.words[a],B=state.words[b];
-      return (B.lapses-A.lapses)||A.due.localeCompare(B.due)||(A.lv-B.lv);
-    });
+    .sort((a,b)=>{const A=state.words[a],B=state.words[b];return (B.lapses-A.lapses)||A.due.localeCompare(B.due)||(A.lv-B.lv);});
 }
 
 function buildQueue(){
   const t=todayStr();
   if(state.day.date!==t){state.day={date:t,newCount:0};save();}
-  if(mode==='wrong'){
-    queue=wrongWords();
-    sessionDone=0;sessionTarget=queue.length;idx=0;
-    return;
-  }
+  if(mode==='wrong'){queue=wrongWords();sessionDone=0;sessionTarget=queue.length;idx=0;return;}
   const due=[];
-  for(const [w] of deckWords()){
-    const e=state.words[w];
-    if(e&&e.due<=t) due.push(w);
-  }
+  for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=t)due.push(w);}
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
   const remainingNew=Math.max(0,dailyNew()-state.day.newCount);
   const fresh=[];
-  for(const [w] of deckWords()){
-    if(fresh.length>=remainingNew) break;
-    if(!state.words[w]) fresh.push(w);
-  }
+  for(const [w] of deckWords()){if(fresh.length>=remainingNew)break;if(!state.words[w])fresh.push(w);}
   queue=[...due,...fresh];
   sessionDone=0;sessionTarget=queue.length;idx=0;
 }
 
-function pickOptions(word){
-  const item=DECK.find(x=>x[0]===word);
-  const correct=item[2];
-  const pool=[];
-  const used=new Set([correct]);
-  for(const w of DECK){
-    if(w[0]===word) continue;
-    if(used.has(w[2])) continue;
-    used.add(w[2]);
-    pool.push(w[2]);
+function makeOptions(w){
+  const item=pickWord(w);
+  const qm=quizMode();
+  const keyOf=qm==='zh2en'?(x=>x[0]):(x=>x[2]);
+  const correct=keyOf(item);
+  const used=new Set([correct]),pool=[];
+  for(const x of DECK){
+    if(x[0]===w)continue;
+    const k=keyOf(x);
+    if(used.has(k))continue;
+    used.add(k);pool.push(k);
   }
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
   const opts=[correct,...pool.slice(0,3)];
   for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]];}
-  return {correct,opts};
+  return opts;
 }
 
 function render(){
-  const t=todayStr();
   const learned=Object.keys(state.words).length;
-  els('totalCount').textContent=`已学 ${learned}/${deckWords().length}`;
-  els('progressTxt').textContent=`${learned} / ${deckWords().length}`;
-  els('allCount').textContent=deckWords().length;
+  const total=deckWords().length;
+  els('totalCount').textContent=`已学 ${learned}/${total}`;
+  els('progressTxt').textContent=`${learned} / ${total}`;
+  els('allCount').textContent=total;
   els('todayCount').textContent=`${sessionDone} / ${sessionTarget}`;
   els('barFill').style.width=sessionTarget?`${Math.min(100,sessionDone/sessionTarget*100)}%`:'100%';
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
-  const dk=(state.settings&&state.settings.deck)||'all';
-  document.querySelectorAll('.deckbtn').forEach(b=>{
-    const on=b.dataset.deck===dk;
-    b.style.background=on?'#5eead4':'#1a2740';
-    b.style.color=on?'#06231e':'#e6edf7';
-  });
+
   const wn=wrongWords().length;
   els('btnWrong').textContent=`错词 ${wn}`;
   els('btnWrong').style.borderColor=(mode==='wrong')?'var(--accent)':'#24314f';
   els('btnWrong').style.color=(mode==='wrong')?'var(--accent)':'var(--dim)';
+
+  document.querySelectorAll('[data-deck]').forEach(b=>{
+    const on=b.dataset.deck===((state.settings&&state.settings.deck)||'all');
+    b.style.background=on?'#5eead4':'#1a2740';b.style.color=on?'#06231e':'#e6edf7';
+  });
+  document.querySelectorAll('[data-mode]').forEach(b=>{
+    const on=b.dataset.mode===quizMode();
+    b.style.background=on?'#5eead4':'#1a2740';b.style.color=on?'#06231e':'#e6edf7';
+  });
+
   const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
   els('countdown').textContent=days>0?`距 12/3 还有 ${days} 天`:'考试日到了';
 
   if(idx>=queue.length){
     els('word').textContent=(mode==='wrong')?'错词本清空了':'今天的清完了';
-    els('pos').textContent=(mode==='wrong')?'这些词你已经拿下了':'明天再来';els('meaning').style.display='none';
-    els('result').textContent='';els('opts').innerHTML='';
+    els('prompt').style.display='none';
+    els('pos').textContent=(mode==='wrong')?'这些词你已经拿下了':'明天再来';
+    els('result').textContent='';els('meaning').style.display='none';
+    els('opts').innerHTML='';els('spellWrap').style.display='none';
     els('btnNext').style.display='none';els('btnSkip').style.display='none';
     return;
   }
-  const w=queue[idx];
-  const item=DECK.find(x=>x[0]===w);
-  els('word').textContent=item[0];
+
+  const w=queue[idx],item=pickWord(w),qm=quizMode();
+  const isSpell=(qm==='spell');
+
+  els('word').textContent=(qm==='en2zh')?item[0]:'';
+  els('word').style.display=(qm==='en2zh')?'block':'none';
+  els('prompt').textContent=(qm==='en2zh')?'':item[2];
+  els('prompt').style.display=(qm==='en2zh')?'none':'block';
   els('pos').textContent=item[1];
   els('result').textContent='';els('result').className='result';
-  els('meaning').textContent=item[2];
+  els('meaning').textContent=item[0]+' · '+item[2];
   els('meaning').style.display=answered?'block':'none';
   els('btnNext').style.display=answered?'block':'none';
   els('btnSkip').style.display=answered?'none':'block';
+  els('spellWrap').style.display=(isSpell&&!answered)?'flex':'none';
 
   const box=els('opts');box.innerHTML='';
-  if(!answered) currentOpts=pickOptions(w).opts;
+  if(isSpell){ if(!answered) setTimeout(()=>els('spellInput').focus(),50); return; }
+  if(!answered) currentOpts=makeOptions(w);
   for(const o of currentOpts){
     const b=document.createElement('button');
     let cls='opt';
-    if(answered){
-      if(o===item[2]) cls+=' correct';
-      else if(o===chosenText) cls+=' wrong';
-    }
+    if(answered){ if(o===item[0]||o===item[2]) cls+=' correct'; else if(o===chosenText) cls+=' wrong'; }
     b.className=cls;b.textContent=o;b.disabled=answered;
     if(!answered) b.onclick=()=>choose(o);
     box.appendChild(b);
@@ -233,79 +244,79 @@ function render(){
 }
 
 function choose(o){
-  if(answered) return;
-  const w=queue[idx];
-  const item=DECK.find(x=>x[0]===w);
-  answered=true;
-  chosenText=o;
-  const right=(o===item[2]);
-  els('result').textContent=right?'✓ 对了':`✗ 记错了 · 正确：${item[2]}`;
+  if(answered)return;
+  const w=queue[idx],item=pickWord(w),qm=quizMode();
+  const correct=(qm==='zh2en')?item[0]:item[2];
+  answered=true;chosenText=o;
+  const right=(o===correct);
+  els('result').textContent=right?'✓ 对了':`✗ 记错了 · 正确：${correct}`;
   els('result').className='result '+(right?'ok':'bad');
-  grade(right?'ok':'bad',right);
+  grade(right);
   render();
 }
 
-function grade(kind,right){
+function checkSpell(){
+  if(answered)return;
+  const w=queue[idx],item=pickWord(w);
+  const typed=(els('spellInput').value||'').trim().toLowerCase();
+  if(!typed)return;
+  answered=true;chosenText=typed;
+  const right=(typed===item[0].toLowerCase());
+  els('result').textContent=right?'✓ 对了':`✗ 正确拼写：${item[0]}`;
+  els('result').className='result '+(right?'ok':'bad');
+  els('spellInput').value='';
+  els('spellInput').blur();
+  grade(right);
+  render();
+}
+
+function grade(right){
   const w=queue[idx];
   let e=state.words[w];
   const isNew=!e;
-  if(!e) e=state.words[w]={lv:0,due:todayStr(),seen:0,lapses:0};
+  if(!e)e=state.words[w]={lv:0,due:todayStr(),seen:0,lapses:0};
   e.seen++;
-  if(!right){
-    e.lv=0;e.lapses++;e.due=addDays(0);
-    queue.push(w);sessionTarget++;
-  }else{
-    e.lv=Math.min(INTERVALS.length-1,e.lv+1);
-    e.due=addDays(INTERVALS[e.lv]);
-  }
-  if(isNew) state.day.newCount++;
-  sessionDone++;
-  save();
+  if(!right){e.lv=0;e.lapses++;e.due=addDays(0);queue.push(w);sessionTarget++;}
+  else{e.lv=Math.min(INTERVALS.length-1,e.lv+1);e.due=addDays(INTERVALS[e.lv]);}
+  if(isNew)state.day.newCount++;
+  sessionDone++;save();
 }
 
-function next(){
-  if(!answered) return;
-  answered=false;chosenText='';idx++;
-  render();
-}
+function next(){if(!answered)return;answered=false;chosenText='';idx++;render();}
 
-document.querySelectorAll('.deckbtn').forEach(b=>{
-  b.onclick=()=>{
-    state.settings.deck=b.dataset.deck;save();
-    mode='daily';buildQueue();render();
-  };
-});
-els('btnWrong').onclick=()=>{
-  mode=(mode==='wrong')?'daily':'wrong';
-  buildQueue();render();
-};
 els('btnNext').onclick=next;
+els('spellGo').onclick=checkSpell;
+els('spellInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkSpell();});
 els('btnSkip').onclick=()=>{
-  if(answered) return;
-  const w=queue[idx];
-  const item=DECK.find(x=>x[0]===w);
-  answered=true;currentOpts=pickOptions(w).opts;
-  els('result').textContent='记一下';
+  if(answered)return;
+  answered=true;
+  const w=queue[idx],item=pickWord(w);
+  chosenText='';
+  els('result').textContent='记一下：'+item[0]+' · '+item[2];
   els('result').className='result bad';
-  grade('bad',false);
-  render();
+  grade(false);render();
 };
 els('btnMenu').onclick=()=>{els('sheet').classList.add('on');renderList();els('io').value='';};
 els('btnClose').onclick=()=>els('sheet').classList.remove('on');
 els('newPerDay').onchange=e=>{state.settings.newPerDay=Math.max(0,Number(e.target.value)||0);save();buildQueue();render();};
 els('btnReset').onclick=()=>{
   if(!confirm('清空所有学习进度？'))return;
-  state={v:2,settings:state.settings,day:{date:todayStr(),newCount:0},words:{}};
+  state={v:3,settings:state.settings,day:{date:todayStr(),newCount:0},words:{}};
   save();buildQueue();render();
 };
 els('btnExport').onclick=()=>{els('io').value=JSON.stringify(state);els('io').select();};
 els('btnImport').onclick=()=>{
-  try{
-    const obj=JSON.parse(els('io').value);
-    if(!obj||!obj.words)throw new Error('格式不对');
-    state=obj;save();buildQueue();render();alert('导入成功');
-  }catch(err){alert('导入失败：'+err.message);}
+  try{const o=JSON.parse(els('io').value);if(!o||!o.words)throw new Error('格式不对');state=o;save();buildQueue();render();alert('导入成功');}
+  catch(err){alert('导入失败：'+err.message);}
 };
+document.querySelectorAll('[data-deck]').forEach(b=>{
+  b.onclick=()=>{state.settings.deck=b.dataset.deck;save();mode='daily';buildQueue();render();};
+});
+document.querySelectorAll('[data-mode]').forEach(b=>{
+  b.onclick=()=>{state.settings.mode=b.dataset.mode;save();buildQueue();render();};
+});
+els('btnWrong').onclick=()=>{mode=(mode==='wrong')?'daily':'wrong';buildQueue();render();};
+
 function renderList(){
   const el=els('list');el.innerHTML='';
   for(const [w,p,z,tag] of deckWords()){
