@@ -49,6 +49,7 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14
 <header>
   <span class="pill" id="todayCount">0 / 0</span>
   <span class="pill" id="countdown">—</span>
+  <button class="pill" id="btnWrong" style="background:none;cursor:pointer">错词 0</button>
   <span class="grow"></span>
   <span class="pill" id="totalCount">—</span>
   <button id="btnMenu" style="background:none;color:var(--dim);font-size:20px;padding:4px 8px;border:0">☰</button>
@@ -91,6 +92,7 @@ const els=id=>document.getElementById(id);
 
 let state=load();
 let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[];
+let mode='daily';
 
 function todayStr(d=new Date()){
   const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
@@ -105,9 +107,24 @@ function load(){
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
 
+function wrongWords(){
+  return WORDS
+    .filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
+    .map(([w])=>w)
+    .sort((a,b)=>{
+      const A=state.words[a],B=state.words[b];
+      return (B.lapses-A.lapses)||A.due.localeCompare(B.due)||(A.lv-B.lv);
+    });
+}
+
 function buildQueue(){
   const t=todayStr();
   if(state.day.date!==t){state.day={date:t,newCount:0};save();}
+  if(mode==='wrong'){
+    queue=wrongWords();
+    sessionDone=0;sessionTarget=queue.length;idx=0;
+    return;
+  }
   const due=[];
   for(const [w] of WORDS){
     const e=state.words[w];
@@ -150,12 +167,16 @@ function render(){
   els('barFill').style.width=sessionTarget?`${Math.min(100,sessionDone/sessionTarget*100)}%`:'100%';
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
+  const wn=wrongWords().length;
+  els('btnWrong').textContent=`错词 ${wn}`;
+  els('btnWrong').style.borderColor=(mode==='wrong')?'var(--accent)':'#24314f';
+  els('btnWrong').style.color=(mode==='wrong')?'var(--accent)':'var(--dim)';
   const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
   els('countdown').textContent=days>0?`距 12/3 还有 ${days} 天`:'考试日到了';
 
   if(idx>=queue.length){
-    els('word').textContent='今天的清完了';
-    els('pos').textContent='';els('meaning').style.display='none';
+    els('word').textContent=(mode==='wrong')?'错词本清空了':'今天的清完了';
+    els('pos').textContent=(mode==='wrong')?'这些词你已经拿下了':'明天再来';els('meaning').style.display='none';
     els('result').textContent='';els('opts').innerHTML='';
     els('btnNext').style.display='none';els('btnSkip').style.display='none';
     return;
@@ -217,6 +238,10 @@ function next(){
   render();
 }
 
+els('btnWrong').onclick=()=>{
+  mode=(mode==='wrong')?'daily':'wrong';
+  buildQueue();render();
+};
 els('btnNext').onclick=next;
 els('btnSkip').onclick=()=>{
   if(answered) return;
