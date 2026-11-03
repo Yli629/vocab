@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
-<title>背单词</title>
+<meta name="description" content="SAT / GRE vocabulary trainer — spaced repetition, three quiz modes, offline. 背单词：间隔重复、三种模式、离线可用。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Vocab Drill · 背单词</title>
 <style>
 :root{
   --bg:#070d1a;--bg2:#0d1730;--card:rgba(20,31,54,.72);--stroke:rgba(148,180,255,.14);
@@ -194,47 +197,43 @@ body.tex-noise #tex{
 .card.shake{animation:shake .38s ease}
 @media (prefers-reduced-motion:reduce){.card.pop,.card.shake{animation:none}}
 </style>
+<style>
+.intro .langswitch{position:absolute;top:18px;right:18px;display:flex;gap:6px}
+.custom{width:100%;height:120px;background:rgba(8,16,32,.9);border:1px solid var(--stroke);color:var(--ink);border-radius:14px;padding:10px;font:13px/1.5 ui-monospace,monospace}
+.sheet input[type=date]{background:rgba(8,16,32,.9);border:1px solid var(--stroke);color:var(--ink);border-radius:10px;padding:8px;font:inherit}
+</style>
 </head>
 <body>
 <div id="tex" aria-hidden="true"></div>
+
+<div class="intro" id="intro">
+  <div class="langswitch">
+    <button class="segbtn" data-lang="zh">中文</button>
+    <button class="segbtn" data-lang="en">EN</button>
+  </div>
+  <div class="introInner">
+    <div class="brand">Vocab Drill</div>
+    <div class="sub" id="introSub">—</div>
+    <div class="deckList" id="deckList"></div>
+    <div class="modeRow" id="modeRow"></div>
+    <button class="startBtn" id="btnStart" data-i18n="start">开始</button>
+    <button class="skip" id="btnIntroMore" data-i18n="moreSettings">更多设置</button>
+  </div>
+</div>
+
 <header>
   <span class="pill" id="todayCount">0 / 0</span>
   <span class="pill" id="countdown">—</span>
-  <button class="pill" id="btnWrong" style="cursor:pointer">错词 0</button>
+  <button class="pill" id="btnWrong" style="cursor:pointer">0</button>
   <span class="grow"></span>
   <span class="pill" id="totalCount">—</span>
   <button id="btnHome" class="pill" style="cursor:pointer">⌂</button>
   <button id="btnMenu" style="background:none;color:var(--dim);font-size:20px;padding:4px 8px;border:0">☰</button>
 </header>
 <div class="bar"><i id="barFill"></i></div>
-
-<div class="intro" id="intro">
-  <div class="introInner">
-    <div class="brand">背单词</div>
-    <div class="sub" id="introSub">—</div>
-
-    <div class="deckList">
-      <button class="deckCard" data-deck="sat"><b>SAT</b><span id="cSat">433 词</span></button>
-      <button class="deckCard" data-deck="s910"><b>SAT 910</b><span id="c910">618 词</span></button>
-      <button class="deckCard" data-deck="gre"><b>GRE</b><span id="cGre">472 词</span></button>
-      <button class="deckCard" data-deck="all"><b>全部</b><span id="cAll">905 词</span></button>
-    </div>
-
-    <div class="modeRow">
-      <button class="segbtn" data-mode="en2zh">英→中</button>
-      <button class="segbtn" data-mode="zh2en">中→英</button>
-      <button class="segbtn" data-mode="spell">拼写</button>
-      <button class="segbtn" data-mode="swipe">快刷</button>
-    </div>
-
-    <button class="startBtn" id="btnStart">开始</button>
-    <button class="skip" id="btnIntroMore">更多设置（每天新词、进度、导入导出）</button>
-  </div>
-</div>
-
 <main>
   <div class="card" id="card">
-    <div class="word" id="word">加载中…</div>
+    <div class="word" id="word">…</div>
     <div class="prompt" id="prompt" style="display:none"></div>
     <div class="pos" id="pos"></div>
     <div class="result" id="result"></div>
@@ -243,100 +242,207 @@ body.tex-noise #tex{
   </div>
   <div class="opts" id="opts"></div>
   <div class="spell" id="spellWrap" style="display:none">
-    <input id="spellInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入英文单词">
-    <button id="spellGo">检查</button>
+    <input id="spellInput" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="spellGo" data-i18n="check">检查</button>
   </div>
-  <button class="next" id="btnNext" style="display:none">下一个</button>
-  <button class="skip" id="btnSkip">不认识，直接看答案</button>
+  <button class="next" id="btnNext" style="display:none" data-i18n="next">下一个</button>
+  <button class="skip" id="btnSkip" data-i18n="skip">不认识，直接看答案</button>
 </main>
 
 <div class="sheet" id="sheet">
-  <h2>设置</h2>
-  <label>词库
-    <span>
-      <button class="segbtn" data-deck="all">全部</button>
-      <button class="segbtn" data-deck="sat">SAT</button>
-      <button class="segbtn" data-deck="s910">910</button>
-      <button class="segbtn" data-deck="gre">GRE</button>
-    </span>
+  <h2 data-i18n="settings">设置</h2>
+
+  <label><span data-i18n="language">语言</span>
+    <span><button class="segbtn" data-lang="zh">中文</button><button class="segbtn" data-lang="en">English</button></span>
   </label>
-  <label>模式
-    <span>
-      <button class="segbtn" data-mode="en2zh">英→中</button>
-      <button class="segbtn" data-mode="zh2en">中→英</button>
-      <button class="segbtn" data-mode="spell">拼写</button>
-      <button class="segbtn" data-mode="swipe">快刷</button>
-    </span>
-  </label>
-  <label>纹理
-    <span>
-      <button class="segbtn" data-tex="none">无</button>
-      <button class="segbtn" data-tex="grid">网格</button>
-      <button class="segbtn" data-tex="dots">点阵</button>
-      <button class="segbtn" data-tex="hatch">斜纹</button>
-      <button class="segbtn" data-tex="contour">等高线</button>
-      <button class="segbtn" data-tex="noise">噪点</button>
-    </span>
-  </label>
-  <label>每天新词 <input type="number" id="newPerDay" min="0" max="200" step="5"></label>
-  <label>今天已学 <span id="todayNew">0</span></label>
-  <label>总进度 <span id="progressTxt">—</span></label>
-  <label>重置全部进度 <button id="btnReset" style="background:#7f1d1d;color:#fee2e2;padding:8px 14px;border:0;border-radius:10px">重置</button></label>
-  <h2 style="margin-top:20px">导出 / 导入</h2>
-  <textarea id="io" placeholder="进度 JSON"></textarea>
+  <label><span data-i18n="deck">词库</span><span id="deckBtns"></span></label>
+  <label><span data-i18n="mode">模式</span><span id="modeBtns"></span></label>
+  <label><span data-i18n="texture">纹理</span><span id="texBtns"></span></label>
+  <label><span data-i18n="examDate">考试日期</span><input type="date" id="examDate"></label>
+  <label><span data-i18n="newPerDay">每天新词</span><input type="number" id="newPerDay" min="0" max="200" step="5"></label>
+  <label><span data-i18n="todayNew">今天已学</span><span id="todayNew">0</span></label>
+  <label><span data-i18n="progress">总进度</span><span id="progressTxt">—</span></label>
+  <label><span data-i18n="resetAll">重置全部进度</span><button id="btnReset" style="background:#7f1d1d;color:#fee2e2;padding:8px 14px;border:0;border-radius:10px" data-i18n="reset">重置</button></label>
+
+  <h2 style="margin-top:20px" data-i18n="customDeck">自定义词库</h2>
+  <div style="font-size:12px;color:var(--dim);margin-bottom:8px" data-i18n="customHint">每行一个：word, 中文意思（或 word | 词性 | 中文意思）</div>
+  <textarea class="custom" id="customInput" placeholder="ephemeral, 短暂的&#10;ubiquitous | adj. | 无处不在的"></textarea>
   <div class="row" style="margin-top:10px">
-    <button id="btnExport">导出</button>
-    <button id="btnImport">导入</button>
+    <button id="btnCustomSave" data-i18n="saveDeck">保存并切换到我的词库</button>
+    <button id="btnCustomClear" data-i18n="clearDeck">清空</button>
   </div>
-  <h2 style="margin-top:20px">全部单词 <span class="pill" id="allCount"></span></h2>
+
+  <h2 style="margin-top:20px" data-i18n="exportImport">导出 / 导入进度</h2>
+  <textarea id="io" placeholder="JSON"></textarea>
+  <div class="row" style="margin-top:10px">
+    <button id="btnExport" data-i18n="export">导出</button>
+    <button id="btnImport" data-i18n="import">导入</button>
+  </div>
+
+  <h2 style="margin-top:20px"><span data-i18n="allWords">全部单词</span> <span class="pill" id="allCount"></span></h2>
   <div class="list" id="list"></div>
-  <button class="close" id="btnClose">关闭</button>
+  <button class="close" id="btnClose" data-i18n="close">关闭</button>
 </div>
 
 <script src="words.js"></script>
 <script src="confusions.js"></script>
 <script>
-const DECK=(function(){
-  const seen=new Set(),out=[];
-  for(const x of WORDS){seen.add(x[0]);out.push([...x,'SAT']);}
-  for(const x of SAT910){seen.add(x[0]);out.push([...x,'910']);}
-  for(const x of GRE){if(!seen.has(x[0]))out.push([...x,'GRE']);}
-  return out;
-})();
+const I18N={
+  zh:{
+    start:'开始', moreSettings:'更多设置',
+    settings:'设置', language:'语言', deck:'词库', mode:'模式', texture:'纹理',
+    examDate:'考试日期', newPerDay:'每天新词', todayNew:'今天已学', progress:'总进度',
+    resetAll:'重置全部进度', reset:'重置',
+    customDeck:'自定义词库', customHint:'每行一个：word, 中文意思（或 word | 词性 | 中文意思）',
+    saveDeck:'保存并切换到我的词库', clearDeck:'清空',
+    exportImport:'导出 / 导入进度', export:'导出', import:'导入', allWords:'全部单词', close:'关闭',
+    modes:{en2zh:'英→中',zh2en:'中→英',spell:'拼写',swipe:'快刷'},
+    decks:{all:'全部',sat:'SAT',s910:'SAT 910',gre:'GRE',my:'我的'},
+    textures:{none:'无',grid:'网格',dots:'点阵',hatch:'斜纹',contour:'等高线',noise:'噪点'},
+    daysLeft:'距考试还有 {n} 天', examDay:'考试日到了', examUnset:'未设置考试日期',
+    remaining:'剩 {n} 词', eta:'按近期速度约 {n} 天', words:'词', learned:'已学 {n}',
+    correct:'✓ 对了', wrong:'✗ 记错了 · 正确：{a}', correctSpell:'✗ 正确拼写：{a}',
+    swipeHint:'右滑认识 · 左滑不认识 · 点一下看意思',
+    doneToday:'今天的清完了', doneWrong:'错词本清空了', tomorrow:'明天再来', conquered:'这些词你已经拿下了',
+    skip:'不认识，直接看答案', next:'下一个', check:'检查',
+    confuse:'易混', lookalike:'近形词',
+    wrongBtn:'错词 {n}',
+    resetConfirm:'清空所有学习进度？', importOk:'导入成功', importFail:'导入失败：',
+    spellPlaceholder:'输入英文单词', customSaved:'已保存 {n} 个词'
+  },
+  en:{
+    start:'Start', moreSettings:'More settings',
+    settings:'Settings', language:'Language', deck:'Deck', mode:'Mode', texture:'Texture',
+    examDate:'Exam date', newPerDay:'New words / day', todayNew:'Learned today', progress:'Progress',
+    resetAll:'Reset all progress', reset:'Reset',
+    customDeck:'Custom deck', customHint:'One per line: word, meaning (or word | pos | meaning)',
+    saveDeck:'Save and switch to my deck', clearDeck:'Clear',
+    exportImport:'Export / import progress', export:'Export', import:'Import', allWords:'All words', close:'Close',
+    modes:{en2zh:'EN→ZH',zh2en:'ZH→EN',spell:'Spell',swipe:'Swipe'},
+    decks:{all:'All',sat:'SAT',s910:'SAT 910',gre:'GRE',my:'Mine'},
+    textures:{none:'None',grid:'Grid',dots:'Dots',hatch:'Hatch',contour:'Contour',noise:'Noise'},
+    daysLeft:'{n} days to exam', examDay:'Exam day', examUnset:'No exam date set',
+    remaining:'{n} words left', eta:'~{n} days at current pace', words:'words', learned:'{n} learned',
+    correct:'✓ Correct', wrong:'✗ Wrong · answer: {a}', correctSpell:'✗ Correct spelling: {a}',
+    swipeHint:'Swipe right = know · left = don\'t · tap to reveal',
+    doneToday:'All done for today', doneWrong:'Wrong-word list is empty', tomorrow:'Come back tomorrow', conquered:'You have beaten these words',
+    skip:"Don't know — show answer", next:'Next', check:'Check',
+    confuse:'Confusable', lookalike:'Look-alike',
+    wrongBtn:'Wrong {n}',
+    resetConfirm:'Reset all progress?', importOk:'Imported', importFail:'Import failed: ',
+    spellPlaceholder:'Type the word', customSaved:'Saved {n} words'
+  }
+};
+let LANG='zh';
+function t(k, vars){
+  const d=I18N[LANG]||I18N.zh;
+  let v=d[k];
+  if(v==null) v=(I18N.zh[k]??k);
+  if(typeof v==='string'&&vars) v=v.replace(/\{(\w+)\}/g,(m,x)=>vars[x]??m);
+  return v;
+}
+function sub(k, key){ const d=I18N[LANG]||I18N.zh; return (d[k]&&d[k][key])||(I18N.zh[k]&&I18N.zh[k][key])||key; }
 
-const KEY='vocab_srs_v3';
+const DECKHOLDER={deck:[]};
+let DECK=DECKHOLDER.deck;
+function rebuildDeck(){
+  const seen=new Set(),out=[];
+  const push=(arr,tag)=>{for(const [w,p,z] of arr){const k=w.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push([w,p||'',z,tag]);}};
+  push((state.custom||[]).map(x=>[x.w,x.p,x.z]),'MY');
+  push(WORDS,'SAT'); push(SAT910,'910'); push(GRE,'GRE');
+  DECK.length=0; for(const x of out) DECK.push(x);
+}
+
+const KEY='vocab_srs_v4';
 const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
-
 let state=load();
+LANG=(state.settings&&state.settings.lang)||'zh';
 let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='',peek=false;
 let mode='daily';
 
 function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return todayStr(d);}
 function load(){
+  if(location.search.indexOf('fresh=1')>=0) return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03'},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
   try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
-  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid'},day:{date:todayStr(),newCount:0},words:{},history:{}};
+  return {v:4,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid',lang:'zh',examDate:'2026-12-03'},day:{date:todayStr(),newCount:0},words:{},history:{},custom:[]};
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
-function texName(){return (state.settings&&state.settings.texture)||'grid';}
-function applyTexture(){
-  const t=texName();
-  document.body.classList.remove('tex-none','tex-grid','tex-dots','tex-hatch','tex-contour','tex-noise');
-  document.body.classList.add('tex-'+t);
-  document.querySelectorAll('[data-tex]').forEach(b=>{b.dataset.on=(b.dataset.tex===t)?'1':'0';});
-}
 function quizMode(){return (state.settings&&state.settings.mode)||'en2zh';}
+function texName(){return (state.settings&&state.settings.texture)||'grid';}
+function deckKey(){return (state.settings&&state.settings.deck)||'all';}
 function deckWords(){
-  const d=(state.settings&&state.settings.deck)||'all';
+  const d=deckKey();
   if(d==='all')return DECK;
-  const tag={sat:'SAT',s910:'910',gre:'GRE'}[d]||'SAT';
+  const tag={sat:'SAT',s910:'910',gre:'GRE',my:'MY'}[d]||'SAT';
   return DECK.filter(x=>x[3]===tag);
 }
 function pickWord(w){return DECK.find(x=>x[0]===w);}
-const REAL=new Set(SAT910.map(x=>x[0].toLowerCase()));
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const REAL=new Set(SAT910.map(x=>x[0].toLowerCase()));
+
+function applyTexture(){
+  const tx=texName();
+  document.body.classList.remove('tex-none','tex-grid','tex-dots','tex-hatch','tex-contour','tex-noise');
+  document.body.classList.add('tex-'+tx);
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.documentElement.lang=(LANG==='zh')?'zh-CN':'en';
+  document.querySelectorAll('[data-lang]').forEach(b=>{b.dataset.on=(b.dataset.lang===LANG)?'1':'0';});
+  els('spellInput').placeholder=t('spellPlaceholder');
+  buildDeckButtons(); buildModeButtons(); buildTexButtons();
+}
+function buildDeckButtons(){
+  const wrap=els('deckBtns'); if(!wrap)return;
+  wrap.innerHTML='';
+  for(const k of ['all','sat','s910','gre','my']){
+    const b=document.createElement('button');
+    b.className='segbtn'; b.textContent=sub('decks',k); b.dataset.deck=k;
+    b.dataset.on=(deckKey()===k)?'1':'0';
+    b.onclick=()=>{state.settings.deck=k;save();mode='daily';buildQueue();render();};
+    wrap.appendChild(b);
+  }
+}
+function buildModeButtons(){
+  const wrap=els('modeBtns'); if(!wrap)return;
+  wrap.innerHTML='';
+  for(const k of ['en2zh','zh2en','spell','swipe']){
+    const b=document.createElement('button');
+    b.className='segbtn'; b.textContent=sub('modes',k); b.dataset.mode=k;
+    b.dataset.on=(quizMode()===k)?'1':'0';
+    b.onclick=()=>{state.settings.mode=k;save();buildQueue();render();};
+    wrap.appendChild(b);
+  }
+}
+function buildTexButtons(){
+  const wrap=els('texBtns'); if(!wrap)return;
+  wrap.innerHTML='';
+  for(const k of ['none','grid','dots','hatch','contour','noise']){
+    const b=document.createElement('button');
+    b.className='segbtn'; b.textContent=sub('textures',k); b.dataset.tex=k;
+    b.dataset.on=(texName()===k)?'1':'0';
+    b.onclick=()=>{state.settings.texture=k;save();applyTexture();buildTexButtons();};
+    wrap.appendChild(b);
+  }
+}
+
+function predict(){
+  const list=deckWords();
+  const learned=list.filter(x=>state.words[x[0]]).length;
+  const remaining=Math.max(0,list.length-learned);
+  const hist=state.history||{};
+  const days=Object.keys(hist).sort().slice(-8);
+  let sum=0,n=0;
+  for(const d of days){ if(d===todayStr())continue; sum+=hist[d].new||0;n++; }
+  const avg=n?sum/n:dailyNew();
+  const need=avg>0?Math.ceil(remaining/avg):Infinity;
+  const ed=state.settings.examDate;
+  const left=ed?Math.max(0,Math.ceil((new Date(ed+'T00:00:00')-new Date())/86400000)):null;
+  return {remaining,avg:Math.round(avg*10)/10,need,left,ok:left==null?true:need<=left};
+}
 
 function wrongWords(){
   return deckWords().filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
@@ -345,11 +451,11 @@ function wrongWords(){
 }
 
 function buildQueue(){
-  const t=todayStr();
-  if(state.day.date!==t){state.day={date:t,newCount:0};save();}
+  const tt=todayStr();
+  if(state.day.date!==tt){state.day={date:tt,newCount:0};save();}
   if(mode==='wrong'){queue=shuffle(wrongWords());sessionDone=0;sessionTarget=queue.length;idx=0;return;}
   const due=[];
-  for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=t)due.push(w);}
+  for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=tt)due.push(w);}
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
   const remainingNew=Math.max(0,dailyNew()-state.day.newCount);
   const pool=[];
@@ -361,8 +467,7 @@ function buildQueue(){
 }
 
 function makeOptions(w){
-  const item=pickWord(w);
-  const qm=quizMode();
+  const item=pickWord(w), qm=quizMode();
   const keyOf=qm==='zh2en'?(x=>x[0]):(x=>x[2]);
   const correct=keyOf(item);
   const used=new Set([correct]),pool=[];
@@ -379,37 +484,36 @@ function makeOptions(w){
 }
 
 function render(){
-  const learned=Object.keys(state.words).length;
-  const total=deckWords().length;
-  els('totalCount').textContent=`已学 ${learned}/${total}`;
+  const list=deckWords(), learned=Object.keys(state.words).length, total=list.length;
+  els('totalCount').textContent=t('learned',{n:learned+'/'+total});
   els('progressTxt').textContent=`${learned} / ${total}`;
   els('allCount').textContent=total;
   els('todayCount').textContent=`${sessionDone} / ${sessionTarget}`;
   els('barFill').style.width=sessionTarget?`${Math.min(100,sessionDone/sessionTarget*100)}%`:'100%';
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
+  els('examDate').value=state.settings.examDate||'';
 
   const wn=wrongWords().length;
-  els('btnWrong').textContent=`错词 ${wn}`;
+  els('btnWrong').textContent=t('wrongBtn',{n:wn});
   els('btnWrong').style.borderColor=(mode==='wrong')?'var(--accent)':'#24314f';
   els('btnWrong').style.color=(mode==='wrong')?'var(--accent)':'var(--dim)';
 
-  document.querySelectorAll('[data-deck]').forEach(b=>{
-    const on=b.dataset.deck===((state.settings&&state.settings.deck)||'all');
-    b.dataset.on=on?'1':'0';
-  });
-  document.querySelectorAll('[data-mode]').forEach(b=>{
-    const on=b.dataset.mode===quizMode();
-    b.dataset.on=on?'1':'0';
-  });
+  buildDeckButtons();buildModeButtons();
 
-  const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
-  els('countdown').textContent=days>0?`距 12/3 还有 ${days} 天`:'考试日到了';
+  const pr=predict();
+  if(state.settings.examDate){
+    els('countdown').textContent=(pr.left>0)?t('daysLeft',{n:pr.left}):t('examDay');
+    els('countdown').style.display='';
+  }else{
+    els('countdown').style.display='none';
+  }
 
   if(idx>=queue.length){
-    els('word').textContent=(mode==='wrong')?'错词本清空了':'今天的清完了';
+    els('word').textContent=(mode==='wrong')?t('doneWrong'):t('doneToday');
+    els('word').style.display='block';
     els('prompt').style.display='none';
-    els('pos').textContent=(mode==='wrong')?'这些词你已经拿下了':'明天再来';
+    els('pos').textContent=(mode==='wrong')?t('conquered'):t('tomorrow');
     els('result').textContent='';els('meaning').style.display='none';els('confuse').style.display='none';
     els('opts').innerHTML='';els('spellWrap').style.display='none';
     els('btnNext').style.display='none';els('btnSkip').style.display='none';
@@ -427,22 +531,21 @@ function render(){
   els('result').textContent='';els('result').className='result';
   els('meaning').textContent=item[0]+' · '+item[2];
   els('meaning').style.display=(answered||peek)?'block':'none';
+  els('btnNext').textContent=t('next');
+  els('btnNext').style.display=answered?'block':'none';
+  els('btnSkip').textContent=t('skip');
+  els('btnSkip').style.display=(answered||isSwipe)?'none':'block';
+  els('spellWrap').style.display=(isSpell&&!answered)?'flex':'none';
+  if(isSwipe&&!answered) els('result').textContent=t('swipeHint');
+
   const key=item[0].toLowerCase();
   const cf=(typeof CONFUSE!=='undefined')?CONFUSE[key]:null;
   const cm=(typeof CONFUSEMAP!=='undefined')?CONFUSEMAP[key]:null;
   let hint='';
-  if(cf) hint=`易混 · <b>${cf.other}</b> ${cf.gloss}`;
-  else if(cm) hint=`近形词 · <b>${cm.o}</b> ${cm.g}`;
-  if(hint&&(answered||peek)){
-    els('confuse').innerHTML=hint;
-    els('confuse').style.display='block';
-  }else{
-    els('confuse').style.display='none';
-  }
-  els('btnNext').style.display=answered?'block':'none';
-  els('btnSkip').style.display=(answered||isSwipe)?'none':'block';
-  els('spellWrap').style.display=(isSpell&&!answered)?'flex':'none';
-  if(isSwipe&&!answered){els('result').textContent='右滑认识 · 左滑不认识 · 点一下看意思';}
+  if(cf) hint=`${t('confuse')} · <b>${cf.other}</b> ${cf.gloss}`;
+  else if(cm) hint=`${t('lookalike')} · <b>${cm.o}</b> ${cm.g}`;
+  if(hint&&(answered||peek)){els('confuse').innerHTML=hint;els('confuse').style.display='block';}
+  else els('confuse').style.display='none';
 
   const box=els('opts');box.innerHTML='';
   if(isSpell){ if(!answered) setTimeout(()=>els('spellInput').focus(),50); return; }
@@ -458,17 +561,23 @@ function render(){
   }
 }
 
+function flash(right){
+  const c=els('card');
+  c.classList.remove('pop','shake');
+  void c.offsetWidth;
+  c.classList.add(right?'pop':'shake');
+  if(navigator.vibrate) navigator.vibrate(right?12:[18,40,18]);
+}
+
 function choose(o){
   if(answered)return;
   const w=queue[idx],item=pickWord(w),qm=quizMode();
   const correct=(qm==='zh2en')?item[0]:item[2];
   answered=true;chosenText=o;
   const right=(o===correct);
-  els('result').textContent=right?'✓ 对了':`✗ 记错了 · 正确：${correct}`;
+  els('result').textContent=right?t('correct'):t('wrong',{a:correct});
   els('result').className='result '+(right?'ok':'bad');
-  flash(right);
-  grade(right);
-  render();
+  flash(right);grade(right);render();
 }
 
 function checkSpell(){
@@ -478,13 +587,10 @@ function checkSpell(){
   if(!typed)return;
   answered=true;chosenText=typed;
   const right=(typed===item[0].toLowerCase());
-  els('result').textContent=right?'✓ 对了':`✗ 正确拼写：${item[0]}`;
+  els('result').textContent=right?t('correct'):t('correctSpell',{a:item[0]});
   els('result').className='result '+(right?'ok':'bad');
-  flash(right);
-  els('spellInput').value='';
-  els('spellInput').blur();
-  grade(right);
-  render();
+  els('spellInput').value='';els('spellInput').blur();
+  flash(right);grade(right);render();
 }
 
 let swX=0,swStart=0,swDragging=false;
@@ -492,7 +598,7 @@ function swipeGrade(right){
   if(answered)return;
   const item=pickWord(queue[idx]);
   answered=true;peek=false;chosenText='';
-  els('result').textContent=right?'✓ 认识':`✗ 不认识 · ${item[2]}`;
+  els('result').textContent=right?t('correct'):t('wrong',{a:item[2]});
   els('result').className='result '+(right?'ok':'bad');
   flash(right);grade(right);render();
 }
@@ -511,8 +617,7 @@ function initSwipe(){
   });
   const end=()=>{
     if(!swDragging)return;
-    swDragging=false;
-    c.style.transform='';c.style.borderColor='';
+    swDragging=false;c.style.transform='';c.style.borderColor='';
     if(swX>70)swipeGrade(true);
     else if(swX<-70)swipeGrade(false);
     else if(Math.abs(swX)<8){peek=!peek;render();}
@@ -520,14 +625,6 @@ function initSwipe(){
   };
   c.addEventListener('pointerup',end);
   c.addEventListener('pointercancel',end);
-}
-
-function flash(right){
-  const c=els('card');
-  c.classList.remove('pop','shake');
-  void c.offsetWidth;
-  c.classList.add(right?'pop':'shake');
-  if(navigator.vibrate) navigator.vibrate(right?12:[18,40,18]);
 }
 
 function grade(right){
@@ -539,53 +636,124 @@ function grade(right){
   if(!right){e.lv=0;e.lapses++;e.due=addDays(0);queue.push(w);sessionTarget++;}
   else{e.lv=Math.min(INTERVALS.length-1,e.lv+1);e.due=addDays(INTERVALS[e.lv]);}
   if(isNew)state.day.newCount++;
-  const t=todayStr();
+  const tt=todayStr();
   state.history=state.history||{};
-  const h=state.history[t]||{new:0,seen:0};
-  h.seen++; if(isNew) h.new++;
-  state.history[t]=h;
+  const h=state.history[tt]||{new:0,seen:0};
+  h.seen++;if(isNew)h.new++;state.history[tt]=h;
   const keys=Object.keys(state.history).sort();
-  while(keys.length>21){delete state.history[keys.shift()];}
+  while(keys.length>21)delete state.history[keys.shift()];
   sessionDone++;save();
 }
 
 function next(){if(!answered)return;answered=false;chosenText='';peek=false;idx++;render();}
 
-initSwipe();
-els('btnNext').onclick=next;
-els('spellGo').onclick=checkSpell;
-els('spellInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkSpell();});
-els('btnSkip').onclick=()=>{
-  if(answered)return;
-  answered=true;
-  const w=queue[idx],item=pickWord(w);
-  chosenText='';
-  els('result').textContent='记一下：'+item[0]+' · '+item[2];
-  els('result').className='result bad';
-  grade(false);render();
-};
-els('btnMenu').onclick=()=>{els('sheet').classList.add('on');renderList();els('io').value='';};
+function deckCounts(){
+  return {
+    sat:DECK.filter(x=>x[3]==='SAT').length,
+    s910:DECK.filter(x=>x[3]==='910').length,
+    gre:DECK.filter(x=>x[3]==='GRE').length,
+    my:DECK.filter(x=>x[3]==='MY').length,
+    all:DECK.length
+  };
+}
+function syncIntro(){
+  const c=deckCounts();
+  const learnedTag=tg=>DECK.filter(x=>x[3]===tg&&state.words[x[0]]).length;
+  const wrap=els('deckList');
+  if(wrap){
+    wrap.innerHTML='';
+    for(const k of ['sat','s910','gre','my','all']){
+      const tag={sat:'SAT',s910:'910',gre:'GRE',my:'MY',all:null}[k];
+      const n=tag?c[{sat:'sat',s910:'s910',gre:'gre',my:'my'}[k]]:c.all;
+      const l=tag?learnedTag(tag):Object.keys(state.words).length;
+      const b=document.createElement('button');
+      b.className='deckCard';b.dataset.deck=k;
+      b.dataset.on=(deckKey()===k)?'1':'0';
+      b.innerHTML=`<b>${sub('decks',k)}</b><span>${n} ${t('words')} · ${t('learned',{n:l})}</span>`;
+      b.onclick=()=>{state.settings.deck=k;save();mode='daily';buildQueue();render();syncIntro();};
+      wrap.appendChild(b);
+    }
+  }
+  const mr=els('modeRow');
+  if(mr){
+    mr.innerHTML='';
+    for(const k of ['en2zh','zh2en','spell','swipe']){
+      const b=document.createElement('button');
+      b.className='segbtn';b.dataset.mode=k;b.textContent=sub('modes',k);
+      b.dataset.on=(quizMode()===k)?'1':'0';
+      b.onclick=()=>{state.settings.mode=k;save();buildQueue();render();syncIntro();};
+      mr.appendChild(b);
+    }
+  }
+  const pr=predict();
+  const base=state.settings.examDate?((pr.left>0)?t('daysLeft',{n:pr.left}):t('examDay')):t('examUnset');
+  els('introSub').textContent=`${base} · ${t('remaining',{n:pr.remaining})} · ${t('eta',{n:pr.need})}`;
+  els('introSub').style.color=pr.ok?'#5eead4':'#fca5a5';
+  document.querySelectorAll('[data-lang]').forEach(b=>{b.dataset.on=(b.dataset.lang===LANG)?'1':'0';});
+}
+function showIntro(){
+  els('intro').classList.remove('off');
+  syncIntro();
+}
+function hideIntro(){
+  state.settings.started=true;save();
+  els('intro').classList.add('off');
+  buildQueue();render();
+}
+
+els('btnStart').onclick=hideIntro;
+els('btnHome').onclick=showIntro;
+els('btnIntroMore').onclick=()=>{openSheet();};
+els('btnMenu').onclick=()=>{openSheet();};
+
+function openSheet(){
+  els('sheet').classList.add('on');
+  renderList();
+  els('io').value='';
+  els('customInput').value=(state.custom||[]).map(x=>[x.w,x.p,x.z].filter(Boolean).join(' | ')).join('\n');
+}
 els('btnClose').onclick=()=>els('sheet').classList.remove('on');
+
+document.querySelectorAll('[data-lang]').forEach(b=>{
+  b.onclick=()=>{
+    LANG=b.dataset.lang;state.settings.lang=LANG;save();
+    applyI18n();syncIntro();render();
+  };
+});
+
+els('examDate').onchange=e=>{state.settings.examDate=e.target.value;save();render();syncIntro();};
 els('newPerDay').onchange=e=>{state.settings.newPerDay=Math.max(0,Number(e.target.value)||0);save();buildQueue();render();};
+
 els('btnReset').onclick=()=>{
-  if(!confirm('清空所有学习进度？'))return;
-  state={v:3,settings:state.settings,day:{date:todayStr(),newCount:0},words:{}};
-  save();buildQueue();render();
+  if(!confirm(t('resetConfirm')))return;
+  state={v:4,settings:state.settings,day:{date:todayStr(),newCount:0},words:{},history:{},custom:state.custom||[]};
+  save();rebuildDeck();buildQueue();render();
 };
+
+els('btnCustomSave').onclick=()=>{
+  const rows=(els('customInput').value||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  for(const line of rows){
+    let parts=line.split('|').map(s=>s.trim());
+    if(parts.length===1){parts=line.split(/[,，\t]/).map(s=>s.trim());}
+    if(parts.length<2||!parts[0]||!parts[1])continue;
+    if(parts.length===2)out.push({w:parts[0],p:'',z:parts[1]});
+    else out.push({w:parts[0],p:parts[1],z:parts.slice(2).join(' ')});
+  }
+  if(!out.length){alert(t('importFail')+'—');return;}
+  state.custom=out;save();rebuildDeck();
+  state.settings.deck='my';save();
+  buildQueue();render();syncIntro();
+  alert(t('customSaved',{n:out.length}));
+};
+els('btnCustomClear').onclick=()=>{state.custom=[];save();rebuildDeck();buildQueue();render();syncIntro();els('customInput').value='';};
+
 els('btnExport').onclick=()=>{els('io').value=JSON.stringify(state);els('io').select();};
 els('btnImport').onclick=()=>{
-  try{const o=JSON.parse(els('io').value);if(!o||!o.words)throw new Error('格式不对');state=o;save();buildQueue();render();alert('导入成功');}
-  catch(err){alert('导入失败：'+err.message);}
+  try{const o=JSON.parse(els('io').value);if(!o||!o.words)throw new Error('bad');state=o;save();rebuildDeck();buildQueue();render();alert(t('importOk'));}
+  catch(err){alert(t('importFail')+err.message);}
 };
-document.querySelectorAll('[data-deck]').forEach(b=>{
-  b.onclick=()=>{state.settings.deck=b.dataset.deck;save();mode='daily';buildQueue();render();syncIntro();};
-});
-document.querySelectorAll('[data-tex]').forEach(b=>{
-  b.onclick=()=>{state.settings.texture=b.dataset.tex;save();applyTexture();};
-});
-document.querySelectorAll('[data-mode]').forEach(b=>{
-  b.onclick=()=>{state.settings.mode=b.dataset.mode;save();buildQueue();render();if(!els('intro').classList.contains('off'))showIntro();};
-});
+
 els('btnWrong').onclick=()=>{mode=(mode==='wrong')?'daily':'wrong';buildQueue();render();};
 
 function renderList(){
@@ -597,59 +765,25 @@ function renderList(){
     el.appendChild(d);
   }
 }
-function predict(){
-  const total=deckWords().length;
-  const learned=deckWords().filter(x=>state.words[x[0]]).length;
-  const remaining=Math.max(0,total-learned);
-  const hist=state.history||{};
-  const days=Object.keys(hist).sort().slice(-8);
-  let sum=0,n=0;
-  for(const d of days){ if(d===todayStr())continue; sum+=hist[d].new||0;n++; }
-  const avg=n?sum/n:dailyNew();
-  const need=avg>0?Math.ceil(remaining/avg):Infinity;
-  const left=Math.max(0,Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000));
-  return {remaining,avg:Math.round(avg*10)/10,need,left,ok:need<=left};
-}
 
-function deckCounts(){
-  const sat=DECK.filter(x=>x[3]==='SAT').length;
-  const s910=DECK.filter(x=>x[3]==='910').length;
-  const gre=DECK.filter(x=>x[3]==='GRE').length;
-  return {sat,s910,gre,all:DECK.length};
-}
-function syncIntro(){
-  const c=deckCounts();
-  els('cSat').textContent=`${c.sat} 词 · 已学 ${DECK.filter(x=>x[3]==='SAT'&&state.words[x[0]]).length}`;
-  els('c910').textContent=`${c.s910} 词 · 已学 ${DECK.filter(x=>x[3]==='910'&&state.words[x[0]]).length}`;
-  els('cGre').textContent=`${c.gre} 词 · 已学 ${DECK.filter(x=>x[3]==='GRE'&&state.words[x[0]]).length}`;
-  els('cAll').textContent=`${c.all} 词 · 已学 ${Object.keys(state.words).length}`;
-  const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
-  const pr=predict();
-  const base=days>0?`距 12/3 还有 ${days} 天`:'考试日到了';
-  els('introSub').textContent=base+` · 剩 ${pr.remaining} 词，按近期速度约 ${pr.need} 天`;
-  els('introSub').style.color=pr.ok?'#5eead4':'#fca5a5';
-}
+els('spellGo').onclick=checkSpell;
+els('spellInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkSpell();});
+els('btnNext').onclick=next;
+els('btnSkip').onclick=()=>{
+  if(answered)return;
+  answered=true;chosenText='';
+  const item=pickWord(queue[idx]);
+  els('result').textContent=t('wrong',{a:item[2]});
+  els('result').className='result bad';
+  grade(false);render();
+};
 
-function showIntro(){
-  syncIntro();
-  els('intro').classList.remove('off');
-  const d=(state.settings&&state.settings.deck)||'all';
-  document.querySelectorAll('.deckCard').forEach(b=>{b.dataset.on=(b.dataset.deck===d)?'1':'0';});
-  const m=quizMode();
-  document.querySelectorAll('.modeRow [data-mode]').forEach(b=>{b.dataset.on=(b.dataset.mode===m)?'1':'0';});
-}
-function hideIntro(){
-  state.settings.started=true;save();
-  els('intro').classList.add('off');
-  buildQueue();render();
-}
-els('btnStart').onclick=hideIntro;
-els('btnHome').onclick=showIntro;
-els('btnIntroMore').onclick=()=>{els('sheet').classList.add('on');renderList();els('io').value='';};
-
+initSwipe();
 applyTexture();
+rebuildDeck();
+applyI18n();
 buildQueue();render();
-if(!state.settings.started) showIntro(); else els('intro').classList.add('off');
+if(!state.settings.started)showIntro();else els('intro').classList.add('off');
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
 </script>
 </body>
