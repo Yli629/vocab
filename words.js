@@ -1565,3 +1565,54 @@ const SAT910=[
 ["jointly", "", "共同地;联合地"],
 ["retroactively", "", "追溯地;事后生效"]
 ];
+
+const CONFUSE=(function(){
+  const pairs=[
+    ["complaisant","complacent","殷勤的；顺从的","自满的"],
+    ["venal","venial","贪腐的；可收买的","可宽恕的（小过失）"],
+    ["proscribe","prescribe","禁止；放逐","开处方；规定"],
+    ["adverse","averse","不利的；相反的","厌恶的；不情愿的"],
+    ["elicit","illicit","引出；套出","非法的"],
+    ["eminent","imminent","杰出的","迫在眉睫的"],
+    ["discreet","discrete","谨慎的；慎言的","离散的；分开的"],
+    ["allude","elude","暗示；间接提到","躲避；使困惑"],
+    ["complement","compliment","补充；补足","恭维；称赞"],
+    ["principal","principle","主要的；校长","原则；原理"],
+    ["stationary","stationery","静止的","文具"],
+    ["affect","effect","影响（动词）","效果（名词）"],
+    ["accept","except","接受","除……之外"],
+    ["moral","morale","道德的","士气"],
+    ["persecute","prosecute","迫害","起诉；继续从事"],
+    ["ingenious","ingenuous","巧妙的","天真的；坦率的"],
+    ["tortuous","torturous","曲折的","折磨人的"],
+    ["flout","flaunt","藐视；公然违抗","炫耀"],
+    ["imply","infer","暗示（说者）","推断（听者）"],
+    ["emend","amend","校订（文本）","修正（法律、行为）"],
+    ["censure","censor","谴责","审查；删剪"],
+    ["aural","oral","听觉的","口头的"],
+    ["canvas","canvass","帆布；画布","拉票；游说"],
+    ["dual","duel","双重的","决斗"],
+    ["hoard","horde","囤积","一大群"],
+    ["idle","idol","闲置的；懒惰的","偶像"],
+    ["naval","navel","海军的","肚脐"],
+    ["official","officious","官方的","爱管闲事的"],
+    ["peace","piece","和平","一块；一件"],
+    ["plain","plane","朴素的；清楚的","平面；飞机"],
+    ["pole","poll","杆；极","民意调查；投票"],
+    ["pray","prey","祈祷","猎物；捕食"],
+    ["right","rite","权利；正确的","仪式"],
+    ["sole","soul","唯一的；鞋底","灵魂"],
+    ["waist","waste","腰","浪费；废弃物"],
+    ["wait","weight","等待","重量"],
+    ["weak","week","弱的","星期"],
+    ["weather","whether","天气","是否"],
+    ["which","witch","哪一个","女巫"],
+    ["whose","who's","谁的","谁是（who is）"]
+  ];
+  const m={};
+  for(const [a,b,ga,gb] of pairs){
+    m[a]={other:b,gloss:gb};
+    m[b]={other:a,gloss:ga};
+  }
+  return m;
+})();

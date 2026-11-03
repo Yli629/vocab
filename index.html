@@ -186,6 +186,8 @@ body.tex-noise #tex{
   opacity:.28;mix-blend-mode:overlay;
 }
 
+.confuse{font-size:13px;color:#9fb4d8;line-height:1.5;border-top:1px dashed rgba(148,180,255,.18);padding-top:8px;margin-top:4px;max-width:92%}
+.confuse b{color:#fca5a5;font-weight:600}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .card.pop{animation:pop .32s ease}
@@ -237,6 +239,7 @@ body.tex-noise #tex{
     <div class="pos" id="pos"></div>
     <div class="result" id="result"></div>
     <div class="meaning" id="meaning" style="display:none"></div>
+    <div class="confuse" id="confuse" style="display:none"></div>
   </div>
   <div class="opts" id="opts"></div>
   <div class="spell" id="spellWrap" style="display:none">
@@ -291,6 +294,7 @@ body.tex-noise #tex{
 </div>
 
 <script src="words.js"></script>
+<script src="confusions.js"></script>
 <script>
 const DECK=(function(){
   const seen=new Set(),out=[];
@@ -406,7 +410,7 @@ function render(){
     els('word').textContent=(mode==='wrong')?'错词本清空了':'今天的清完了';
     els('prompt').style.display='none';
     els('pos').textContent=(mode==='wrong')?'这些词你已经拿下了':'明天再来';
-    els('result').textContent='';els('meaning').style.display='none';
+    els('result').textContent='';els('meaning').style.display='none';els('confuse').style.display='none';
     els('opts').innerHTML='';els('spellWrap').style.display='none';
     els('btnNext').style.display='none';els('btnSkip').style.display='none';
     return;
@@ -423,6 +427,18 @@ function render(){
   els('result').textContent='';els('result').className='result';
   els('meaning').textContent=item[0]+' · '+item[2];
   els('meaning').style.display=(answered||peek)?'block':'none';
+  const key=item[0].toLowerCase();
+  const cf=(typeof CONFUSE!=='undefined')?CONFUSE[key]:null;
+  const cm=(typeof CONFUSEMAP!=='undefined')?CONFUSEMAP[key]:null;
+  let hint='';
+  if(cf) hint=`易混 · <b>${cf.other}</b> ${cf.gloss}`;
+  else if(cm) hint=`近形词 · <b>${cm.o}</b> ${cm.g}`;
+  if(hint&&(answered||peek)){
+    els('confuse').innerHTML=hint;
+    els('confuse').style.display='block';
+  }else{
+    els('confuse').style.display='none';
+  }
   els('btnNext').style.display=answered?'block':'none';
   els('btnSkip').style.display=(answered||isSwipe)?'none':'block';
   els('spellWrap').style.display=(isSpell&&!answered)?'flex':'none';
