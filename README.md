@@ -1,84 +1,77 @@
 # Vocab Drill · 背单词
 
-A tiny, offline-first vocabulary trainer for **SAT / GRE** — spaced repetition, four quiz modes, no accounts, no tracking, no backend.
+一个**离线可用**的 SAT / GRE 单词训练器：间隔重复、四种模式、单文件、无后端、无账号、无追踪。
 
-[![Live demo](https://img.shields.io/badge/live-demo-5eead4?style=flat-square)](https://yli629.github.io/vocab/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-[![PWA](https://img.shields.io/badge/PWA-installable-5eead4?style=flat-square)](manifest.webmanifest)
+[在线使用](https://yli629.github.io/vocab/) · [MIT License](LICENSE)
 
 ![screenshot](docs/screenshot.png)
 
-## Features
+## 功能
 
-- **Spaced repetition** — each word is scheduled at 1 / 2 / 4 / 7 / 12 / 20 days; wrong answers come back the same session.
-- **Four quiz modes** — `EN→ZH`, `ZH→EN`, `Spell` (type the word), `Swipe` (right = know, left = don't).
-- **Decks** — SAT (433), SAT 910 (554 unique), GRE (452), plus **your own custom deck** pasted in settings.
-- **Wrong-word drill** — one tap filters to the words you've missed; a word graduates after reaching level 3.
-- **Confusable hints** — after answering, pairs like *venal / venial* or *complaisant / complacent* are shown side by side.
-- **Pace prediction** — estimates how many days the remaining deck will take at your recent speed.
-- **Offline / installable** — service worker + web manifest; add to home screen and use it on the subway.
-- **Bilingual UI** — 中文 / English.
-- **Private by default** — progress lives in `localStorage`; export/import as JSON to move devices.
+- **间隔重复**：答对后 1/2/4/7/12/20 天再出现；答错当场重排，本轮再见一次
+- **四种模式**：英→中、中→英、拼写（手打）、快刷（左右滑，单手可用）
+- **词库**：SAT 433 · SAT 910 554 · GRE 452 · 自定义词库
+- **错词本**：一键只练错过的词；连对到等级 3 自动「毕业」
+- **易混词提示**：答完后并排显示 *venal / venial*、*complaisant / complacent* 这类易混对
+- **速度预测**：按最近 7 天的速度，估算剩余词要几天，和考试日期对比
+- **离线 / 可安装**：Service Worker + manifest，添加到主屏幕后断网也能用
+- **数据在本地**：进度存在 `localStorage`，可导出 JSON 换设备
 
-## Quick start
+## 快速开始
 
-### Use it as-is
+### 直接用
 
-Open **https://yli629.github.io/vocab/** on your phone, then *Share → Add to Home Screen*.
+手机打开 **https://yli629.github.io/vocab/** → 分享 → **添加到主屏幕**。
 
-### Deploy your own copy
+### 部署自己的副本
 
-1. Click **Use this template** (or fork this repo).
-2. In your repo: **Settings → Pages → Deploy from a branch → `main` / `/ (root)`**.
-3. Open `https://<your-user>.github.io/<repo>/` — done. No build step, no dependencies.
+1. 点仓库右上角 **Use this template**（或 fork）
+2. 仓库里 **Settings → Pages → Deploy from a branch → `main` / `/ (root)`**
+3. 打开 `https://<你的用户名>.github.io/<仓库名>/` —— 没有构建步骤，没有依赖
 
-### Run locally
+### 本地运行
 
 ```bash
 git clone https://github.com/Yli629/vocab.git
 cd vocab
 python3 -m http.server 8000
-# open http://localhost:8000
+# 打开 http://localhost:8000
 ```
 
-> `?fresh=1` on the URL opens the start screen with an empty progress store — handy for screenshots.
+> URL 加 `?fresh=1` 会以空进度打开封面页，方便截图或试玩。
 
-## Custom deck
+## 自定义词库
 
-Settings → **Custom deck**, one word per line:
+设置 → **自定义词库**，每行一条：
 
 ```
 ephemeral, 短暂的
 ubiquitous | adj. | 无处不在的
 ```
 
-Then tap **Save and switch to my deck**. It is stored locally and can be exported with the rest of your progress.
+点「保存并切换到我的词库」。词库存在本地，会跟着进度一起导出。
 
-## Data format
+## 数据格式
 
-Everything is one JSON object in `localStorage` under `vocab_srs_v4`:
+所有状态是 `localStorage` 里 `vocab_srs_v4` 的一个 JSON：
 
 ```json
 {
-  "settings": { "newPerDay": 40, "deck": "all", "mode": "en2zh", "examDate": "2026-12-03", "lang": "zh" },
+  "settings": { "newPerDay": 40, "deck": "all", "mode": "en2zh", "examDate": "2026-12-03" },
   "words": { "abate": { "lv": 2, "due": "2026-11-08", "seen": 3, "lapses": 1 } },
   "history": { "2026-11-02": { "new": 40, "seen": 62 } },
   "custom": [{ "w": "ephemeral", "p": "", "z": "短暂的" }]
 }
 ```
 
-## Tech
+## 技术
 
-Vanilla HTML/CSS/JS, no build, no dependencies, no analytics. ~1,500 lines total. Word lists live in `words.js`; lookalike pairs are precomputed into `confusions.js`.
+纯 HTML / CSS / JS，无构建、无依赖、无统计。词表在 `words.js`，形近词表由脚本预计算进 `confusions.js`。
 
-## 中文说明
+## 说明
 
-- **间隔重复**：答对后 1/2/4/7/12/20 天再出现；答错当场重排。
-- **四种模式**：英→中、中→英、拼写、快刷（左右滑）。
-- **自定义词库**：设置里粘贴，按「word, 意思」或「word | 词性 | 意思」每行一条。
-- **进度**：存在手机本地，可导出 JSON 换设备。
-- **离线可用**：添加到主屏幕后断网也能背。
+词表用于学习用途，中文释义仅供参考；引用前请以自己的教材为准。
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Word lists are included for study purposes; check them against your own sources before relying on them.
+MIT — 见 [LICENSE](LICENSE)。
