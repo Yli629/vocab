@@ -138,6 +138,7 @@ function deckWords(){
   return DECK.filter(x=>x[3]===(d==='sat'?'SAT':'GRE'));
 }
 function pickWord(w){return DECK.find(x=>x[0]===w);}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 function wrongWords(){
   return deckWords().filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
@@ -148,14 +149,14 @@ function wrongWords(){
 function buildQueue(){
   const t=todayStr();
   if(state.day.date!==t){state.day={date:t,newCount:0};save();}
-  if(mode==='wrong'){queue=wrongWords();sessionDone=0;sessionTarget=queue.length;idx=0;return;}
+  if(mode==='wrong'){queue=shuffle(wrongWords());sessionDone=0;sessionTarget=queue.length;idx=0;return;}
   const due=[];
   for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=t)due.push(w);}
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
   const remainingNew=Math.max(0,dailyNew()-state.day.newCount);
   const fresh=[];
   for(const [w] of deckWords()){if(fresh.length>=remainingNew)break;if(!state.words[w])fresh.push(w);}
-  queue=[...due,...fresh];
+  queue=shuffle([...due,...fresh]);
   sessionDone=0;sessionTarget=queue.length;idx=0;
 }
 
