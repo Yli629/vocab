@@ -211,6 +211,7 @@ body.tex-noise #tex{
 
     <div class="deckList">
       <button class="deckCard" data-deck="sat"><b>SAT</b><span id="cSat">433 词</span></button>
+      <button class="deckCard" data-deck="s910"><b>SAT 910</b><span id="c910">618 词</span></button>
       <button class="deckCard" data-deck="gre"><b>GRE</b><span id="cGre">472 词</span></button>
       <button class="deckCard" data-deck="all"><b>全部</b><span id="cAll">905 词</span></button>
     </div>
@@ -249,6 +250,7 @@ body.tex-noise #tex{
     <span>
       <button class="segbtn" data-deck="all">全部</button>
       <button class="segbtn" data-deck="sat">SAT</button>
+      <button class="segbtn" data-deck="s910">910</button>
       <button class="segbtn" data-deck="gre">GRE</button>
     </span>
   </label>
@@ -289,6 +291,7 @@ body.tex-noise #tex{
 const DECK=(function(){
   const seen=new Set(),out=[];
   for(const x of WORDS){seen.add(x[0]);out.push([...x,'SAT']);}
+  for(const x of SAT910){seen.add(x[0]);out.push([...x,'910']);}
   for(const x of GRE){if(!seen.has(x[0]))out.push([...x,'GRE']);}
   return out;
 })();
@@ -320,7 +323,8 @@ function quizMode(){return (state.settings&&state.settings.mode)||'en2zh';}
 function deckWords(){
   const d=(state.settings&&state.settings.deck)||'all';
   if(d==='all')return DECK;
-  return DECK.filter(x=>x[3]===(d==='sat'?'SAT':'GRE'));
+  const tag={sat:'SAT',s910:'910',gre:'GRE'}[d]||'SAT';
+  return DECK.filter(x=>x[3]===tag);
 }
 function pickWord(w){return DECK.find(x=>x[0]===w);}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -527,12 +531,14 @@ function renderList(){
 }
 function deckCounts(){
   const sat=DECK.filter(x=>x[3]==='SAT').length;
+  const s910=DECK.filter(x=>x[3]==='910').length;
   const gre=DECK.filter(x=>x[3]==='GRE').length;
-  return {sat,gre,all:DECK.length};
+  return {sat,s910,gre,all:DECK.length};
 }
 function syncIntro(){
   const c=deckCounts();
   els('cSat').textContent=`${c.sat} 词 · 已学 ${DECK.filter(x=>x[3]==='SAT'&&state.words[x[0]]).length}`;
+  els('c910').textContent=`${c.s910} 词 · 已学 ${DECK.filter(x=>x[3]==='910'&&state.words[x[0]]).length}`;
   els('cGre').textContent=`${c.gre} 词 · 已学 ${DECK.filter(x=>x[3]==='GRE'&&state.words[x[0]]).length}`;
   els('cAll').textContent=`${c.all} 词 · 已学 ${Object.keys(state.words).length}`;
   const days=Math.ceil((new Date('2026-12-03T00:00:00')-new Date())/86400000);
