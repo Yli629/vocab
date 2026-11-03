@@ -1,4 +1,4 @@
-const CACHE='vocab-v8';
+const CACHE='vocab-v9';
 const FILES=['./','./index.html','./words.js'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));
