@@ -351,7 +351,7 @@ const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
 let state=load();
 LANG='zh';
-let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='',peek=false;
+let queue=[],idx=0,answered=false,sessionDone=0,sessionTarget=0,currentOpts=[],chosenText='',peek=false,sessionRight=0;
 let mode='daily';
 
 function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10);}
@@ -436,6 +436,20 @@ function predict(){
   return {remaining,avg:Math.round(avg*10)/10,need,left,ok:left==null?true:need<=left};
 }
 
+function streak(){
+  const hist=state.history||{};
+  let n=0; const d=new Date();
+  // 今天没背也算断点之前：从今天或昨天开始往回数
+  for(let i=0;i<400;i++){
+    const ds=todayStr(new Date(d.getTime()-i*86400000));
+    const h=hist[ds];
+    if(h&&h.seen>0){n++;}
+    else if(i===0){continue;}
+    else break;
+  }
+  return n;
+}
+
 function wrongWords(){
   return deckWords().filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
     .map(([w])=>w)
@@ -445,7 +459,7 @@ function wrongWords(){
 function buildQueue(){
   const tt=todayStr();
   if(state.day.date!==tt){state.day={date:tt,newCount:0};save();}
-  if(mode==='wrong'){queue=shuffle(wrongWords());sessionDone=0;sessionTarget=queue.length;idx=0;return;}
+  if(mode==='wrong'){queue=shuffle(wrongWords());sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;return;}
   const due=[];
   for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=tt)due.push(w);}
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
@@ -455,7 +469,7 @@ function buildQueue(){
   pool.sort((a,b)=>{const A=REAL.has(a.toLowerCase())?0:1,B=REAL.has(b.toLowerCase())?0:1;return A-B;});
   const fresh=pool.slice(0,remainingNew);
   queue=shuffle([...due,...fresh]);
-  sessionDone=0;sessionTarget=queue.length;idx=0;
+  sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;
 }
 
 function makeOptions(w){
@@ -502,13 +516,21 @@ function render(){
   }
 
   if(idx>=queue.length){
-    els('word').textContent=(mode==='wrong')?t('doneWrong'):t('doneToday');
+    const acc=sessionDone?Math.round(sessionRight/sessionDone*100):0;
+    const st=streak();
+    els('word').textContent=(mode==='wrong')?'错词本清空了':'今天清完了';
     els('word').style.display='block';
     els('prompt').style.display='none';
-    els('pos').textContent=(mode==='wrong')?t('conquered'):t('tomorrow');
-    els('result').textContent='';els('meaning').style.display='none';els('confuse').style.display='none';
+    els('pos').textContent=(mode==='wrong')?`拿下 ${sessionDone} 个`:`今天 ${sessionDone} 张 · 正确率 ${acc}%`;
+    els('result').textContent=(mode==='wrong')?'':`🔥 连击 ${st} 天`;
+    els('result').className='result ok';
+    els('meaning').textContent=(mode==='wrong')?t('conquered'):t('tomorrow');
+    els('meaning').style.display='block';
+    els('confuse').style.display='none';
     els('opts').innerHTML='';els('spellWrap').style.display='none';
-    els('btnNext').style.display='none';els('btnSkip').style.display='none';
+    els('btnNext').textContent=(mode==='wrong')?'再刷一遍':'再来 10 个';
+    els('btnNext').style.display='block';
+    els('btnSkip').style.display='none';
     return;
   }
 
@@ -634,10 +656,21 @@ function grade(right){
   h.seen++;if(isNew)h.new++;state.history[tt]=h;
   const keys=Object.keys(state.history).sort();
   while(keys.length>21)delete state.history[keys.shift()];
-  sessionDone++;save();
+  sessionDone++; if(right)sessionRight++; save();
 }
 
-function next(){if(!answered)return;answered=false;chosenText='';peek=false;idx++;render();}
+function next(){
+  if(idx>=queue.length){ addMore(10); return; }
+  if(!answered)return;
+  answered=false;chosenText='';peek=false;idx++;render();
+}
+function addMore(n){
+  if(mode==='wrong'){ queue=shuffle(wrongWords()); sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;render();return; }
+  const pool=deckWords().filter(([w])=>!state.words[w]).map(x=>x[0]);
+  if(!pool.length){ els('result').textContent='词库已经过完了'; return; }
+  const picked=shuffle(pool).slice(0,Math.min(n,pool.length));
+  queue.push(...picked); sessionTarget+=picked.length; render();
+}
 
 function deckCounts(){
   return {
