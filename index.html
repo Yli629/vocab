@@ -151,6 +151,39 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16
   box-shadow:0 18px 40px -18px rgba(94,234,212,.9);cursor:pointer}
 .intro .skip{margin-top:-6px;color:#61759a;font-size:12px;text-decoration:underline}
 
+
+#tex{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1;transition:opacity .3s}
+header,main,.intro,.sheet{position:relative;z-index:1}
+body.tex-none #tex{opacity:0}
+/* 网格 */
+body.tex-grid #tex{
+  background-image:
+    repeating-linear-gradient(0deg, rgba(160,200,255,.055) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(90deg, rgba(160,200,255,.055) 0 1px, transparent 1px 30px);
+  mask-image:radial-gradient(120% 100% at 50% 0%, #000 25%, transparent 85%);
+}
+/* 点阵 */
+body.tex-dots #tex{
+  background-image:radial-gradient(rgba(190,220,255,.16) 1px, transparent 1.4px);
+  background-size:18px 18px;
+  mask-image:radial-gradient(110% 90% at 50% 10%, #000 20%, transparent 80%);
+}
+/* 斜纹 */
+body.tex-hatch #tex{
+  background-image:repeating-linear-gradient(45deg, rgba(150,200,255,.06) 0 1px, transparent 1px 12px);
+  mask-image:radial-gradient(120% 100% at 50% 0%, #000 20%, transparent 85%);
+}
+/* 等高线 */
+body.tex-contour #tex{
+  background-image:repeating-radial-gradient(circle at 50% 120%, rgba(94,234,212,.10) 0 1px, transparent 1px 26px);
+  opacity:.8;
+}
+/* 噪点 */
+body.tex-noise #tex{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity:.28;mix-blend-mode:overlay;
+}
+
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .card.pop{animation:pop .32s ease}
@@ -159,6 +192,7 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16
 </style>
 </head>
 <body>
+<div id="tex" aria-hidden="true"></div>
 <header>
   <span class="pill" id="todayCount">0 / 0</span>
   <span class="pill" id="countdown">—</span>
@@ -225,6 +259,16 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:16
       <button class="segbtn" data-mode="spell">拼写</button>
     </span>
   </label>
+  <label>纹理
+    <span>
+      <button class="segbtn" data-tex="none">无</button>
+      <button class="segbtn" data-tex="grid">网格</button>
+      <button class="segbtn" data-tex="dots">点阵</button>
+      <button class="segbtn" data-tex="hatch">斜纹</button>
+      <button class="segbtn" data-tex="contour">等高线</button>
+      <button class="segbtn" data-tex="noise">噪点</button>
+    </span>
+  </label>
   <label>每天新词 <input type="number" id="newPerDay" min="0" max="200" step="5"></label>
   <label>今天已学 <span id="todayNew">0</span></label>
   <label>总进度 <span id="progressTxt">—</span></label>
@@ -261,10 +305,17 @@ function todayStr(d=new Date()){const x=new Date(d.getTime()-d.getTimezoneOffset
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return todayStr(d);}
 function load(){
   try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}
-  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh'},day:{date:todayStr(),newCount:0},words:{}};
+  return {v:3,settings:{newPerDay:40,deck:'all',mode:'en2zh',texture:'grid'},day:{date:todayStr(),newCount:0},words:{}};
 }
 function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
+function texName(){return (state.settings&&state.settings.texture)||'grid';}
+function applyTexture(){
+  const t=texName();
+  document.body.classList.remove('tex-none','tex-grid','tex-dots','tex-hatch','tex-contour','tex-noise');
+  document.body.classList.add('tex-'+t);
+  document.querySelectorAll('[data-tex]').forEach(b=>{b.dataset.on=(b.dataset.tex===t)?'1':'0';});
+}
 function quizMode(){return (state.settings&&state.settings.mode)||'en2zh';}
 function deckWords(){
   const d=(state.settings&&state.settings.deck)||'all';
@@ -457,6 +508,9 @@ els('btnImport').onclick=()=>{
 document.querySelectorAll('[data-deck]').forEach(b=>{
   b.onclick=()=>{state.settings.deck=b.dataset.deck;save();mode='daily';buildQueue();render();syncIntro();};
 });
+document.querySelectorAll('[data-tex]').forEach(b=>{
+  b.onclick=()=>{state.settings.texture=b.dataset.tex;save();applyTexture();};
+});
 document.querySelectorAll('[data-mode]').forEach(b=>{
   b.onclick=()=>{state.settings.mode=b.dataset.mode;save();buildQueue();render();if(!els('intro').classList.contains('off'))showIntro();};
 });
@@ -502,6 +556,7 @@ els('btnStart').onclick=hideIntro;
 els('btnHome').onclick=showIntro;
 els('btnIntroMore').onclick=()=>{els('sheet').classList.add('on');renderList();els('io').value='';};
 
+applyTexture();
 buildQueue();render();
 if(!state.settings.started) showIntro(); else els('intro').classList.add('off');
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
