@@ -69,6 +69,13 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14
 
 <div class="sheet" id="sheet">
   <h2>设置</h2>
+  <label>词库
+    <span>
+      <button class="deckbtn" data-deck="all" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">全部</button>
+      <button class="deckbtn" data-deck="sat" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">SAT</button>
+      <button class="deckbtn" data-deck="gre" style="background:#1a2740;color:#e6edf7;border:0;border-radius:10px;padding:6px 10px">GRE</button>
+    </span>
+  </label>
   <label>每天新词 <input type="number" id="newPerDay" min="0" max="200" step="5"></label>
   <label>今天已学 <span id="todayNew">0</span></label>
   <label>总进度 <span id="progressTxt">—</span></label>
@@ -86,6 +93,18 @@ main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:14
 
 <script src="words.js"></script>
 <script>
+const DECK=(function(){
+  const seen=new Set(),out=[];
+  for(const x of WORDS){seen.add(x[0]);out.push([...x,'SAT']);}
+  for(const x of GRE){if(!seen.has(x[0]))out.push([...x,'GRE']);}
+  return out;
+})();
+function deckWords(){
+  const d=(state.settings&&state.settings.deck)||'all';
+  if(d==='all')return DECK;
+  const tag=(d==='sat')?'SAT':'GRE';
+  return DECK.filter(x=>x[3]===tag);
+}
 const KEY='vocab_srs_v2';
 const INTERVALS=[0,1,2,4,7,12,20];
 const els=id=>document.getElementById(id);
@@ -108,7 +127,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));}
 function dailyNew(){return Math.max(0,Number(state.settings.newPerDay)||0);}
 
 function wrongWords(){
-  return WORDS
+  return deckWords()
     .filter(([w])=>{const e=state.words[w];return e&&e.lapses>0&&e.lv<3;})
     .map(([w])=>w)
     .sort((a,b)=>{
@@ -126,14 +145,14 @@ function buildQueue(){
     return;
   }
   const due=[];
-  for(const [w] of WORDS){
+  for(const [w] of deckWords()){
     const e=state.words[w];
     if(e&&e.due<=t) due.push(w);
   }
   due.sort((a,b)=>state.words[a].due.localeCompare(state.words[b].due)||state.words[a].lv-state.words[b].lv);
   const remainingNew=Math.max(0,dailyNew()-state.day.newCount);
   const fresh=[];
-  for(const [w] of WORDS){
+  for(const [w] of deckWords()){
     if(fresh.length>=remainingNew) break;
     if(!state.words[w]) fresh.push(w);
   }
@@ -142,11 +161,11 @@ function buildQueue(){
 }
 
 function pickOptions(word){
-  const item=WORDS.find(x=>x[0]===word);
+  const item=DECK.find(x=>x[0]===word);
   const correct=item[2];
   const pool=[];
   const used=new Set([correct]);
-  for(const w of WORDS){
+  for(const w of DECK){
     if(w[0]===word) continue;
     if(used.has(w[2])) continue;
     pool.push(w[2]);
@@ -160,13 +179,19 @@ function pickOptions(word){
 function render(){
   const t=todayStr();
   const learned=Object.keys(state.words).length;
-  els('totalCount').textContent=`已学 ${learned}/${WORDS.length}`;
-  els('progressTxt').textContent=`${learned} / ${WORDS.length}`;
-  els('allCount').textContent=WORDS.length;
+  els('totalCount').textContent=`已学 ${learned}/${deckWords().length}`;
+  els('progressTxt').textContent=`${learned} / ${deckWords().length}`;
+  els('allCount').textContent=deckWords().length;
   els('todayCount').textContent=`${sessionDone} / ${sessionTarget}`;
   els('barFill').style.width=sessionTarget?`${Math.min(100,sessionDone/sessionTarget*100)}%`:'100%';
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
+  const dk=(state.settings&&state.settings.deck)||'all';
+  document.querySelectorAll('.deckbtn').forEach(b=>{
+    const on=b.dataset.deck===dk;
+    b.style.background=on?'#5eead4':'#1a2740';
+    b.style.color=on?'#06231e':'#e6edf7';
+  });
   const wn=wrongWords().length;
   els('btnWrong').textContent=`错词 ${wn}`;
   els('btnWrong').style.borderColor=(mode==='wrong')?'var(--accent)':'#24314f';
@@ -182,7 +207,7 @@ function render(){
     return;
   }
   const w=queue[idx];
-  const item=WORDS.find(x=>x[0]===w);
+  const item=DECK.find(x=>x[0]===w);
   els('word').textContent=item[0];
   els('pos').textContent=item[1];
   els('result').textContent='';els('result').className='result';
@@ -205,7 +230,7 @@ function render(){
 function choose(o){
   if(answered) return;
   const w=queue[idx];
-  const item=WORDS.find(x=>x[0]===w);
+  const item=DECK.find(x=>x[0]===w);
   answered=true;
   const right=(o===item[2]);
   els('result').textContent=right?'✓ 对了':'✗ 记错了';
@@ -238,6 +263,12 @@ function next(){
   render();
 }
 
+document.querySelectorAll('.deckbtn').forEach(b=>{
+  b.onclick=()=>{
+    state.settings.deck=b.dataset.deck;save();
+    mode='daily';buildQueue();render();
+  };
+});
 els('btnWrong').onclick=()=>{
   mode=(mode==='wrong')?'daily':'wrong';
   buildQueue();render();
@@ -246,7 +277,7 @@ els('btnNext').onclick=next;
 els('btnSkip').onclick=()=>{
   if(answered) return;
   const w=queue[idx];
-  const item=WORDS.find(x=>x[0]===w);
+  const item=DECK.find(x=>x[0]===w);
   answered=true;currentOpts=pickOptions(w).opts;
   els('result').textContent='记一下';
   els('result').className='result bad';
@@ -271,10 +302,10 @@ els('btnImport').onclick=()=>{
 };
 function renderList(){
   const el=els('list');el.innerHTML='';
-  for(const [w,p,z] of WORDS){
+  for(const [w,p,z,tag] of deckWords()){
     const e=state.words[w];
     const d=document.createElement('div');
-    d.innerHTML=`<b>${w}</b> ${p} ${z}${e?` <span style="color:#5b6b86">· L${e.lv}</span>`:''}`;
+    d.innerHTML=`<b>${w}</b> <span style="color:#5b6b86">${tag}</span> ${p} ${z}${e?` <span style="color:#5b6b86">· L${e.lv}</span>`:''}`;
     el.appendChild(d);
   }
 }
