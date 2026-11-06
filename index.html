@@ -492,7 +492,7 @@ function wrongWords(){
 
 function buildQueue(){
   const tt=todayStr();
-  if(state.day.date!==tt){state.day={date:tt,newCount:0};save();}
+  if(state.day.date!==tt){state.day={date:tt,newCount:0,done:0,goal:0};save();}
   if(mode==='wrong'){queue=shuffle(wrongWords());sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;return;}
   const due=[];
   for(const [w] of deckWords()){const e=state.words[w];if(e&&e.due<=tt)due.push(w);}
@@ -504,6 +504,7 @@ function buildQueue(){
   const fresh=pool.slice(0,remainingNew);
   queue=shuffle([...due,...fresh]);
   sessionDone=0;sessionRight=0;sessionTarget=queue.length;idx=0;
+  if(!state.day.goal) { state.day.goal=queue.length; save(); }
 }
 
 function makeOptions(w){
@@ -524,14 +525,15 @@ function makeOptions(w){
 }
 
 function render(){
-  const list=deckWords(), learned=Object.keys(state.words).length, total=list.length;
+  const list=deckWords(), learned=list.filter(x=>state.words[x[0]]).length, total=list.length;
   els('totalCount').textContent=t('learned',{n:learned+'/'+total});
   els('progressTxt').textContent=`${learned} / ${total}`;
   els('allCount').textContent=total;
   els('todayCount').textContent=`${sessionDone} / ${sessionTarget}`;
   const ring=els('ringFg');
-  if(ring){const C=100.5;const p=sessionTarget?Math.min(1,sessionDone/sessionTarget):1;ring.style.strokeDashoffset=String(C*(1-p));ring.style.stroke=(p>=1)?'#fbbf24':'';}
-  els('todayCount').textContent=`${sessionDone}/${sessionTarget}`;
+  const dDone=(state.day&&state.day.done)||0, dGoal=(state.day&&state.day.goal)||0;
+  if(ring){const C=100.5;const p=dGoal?Math.min(1,dDone/dGoal):(dDone?1:0);ring.style.strokeDashoffset=String(C*(1-p));ring.style.stroke=(p>=1)?'#fbbf24':'';}
+  els('todayCount').textContent=`${dDone}/${dGoal||'—'}`;
   els('todayNew').textContent=state.day.newCount;
   els('newPerDay').value=dailyNew();
   els('examDate').value=state.settings.examDate||'';
@@ -553,12 +555,13 @@ function render(){
   }
 
   if(idx>=queue.length){
+    const dDone=(state.day&&state.day.done)||sessionDone;
     const acc=sessionDone?Math.round(sessionRight/sessionDone*100):0;
     const st=streak();
     els('word').textContent=(mode==='wrong')?'错词本清空了':'今天清完了';
     els('word').style.display='block';
     els('prompt').style.display='none';
-    els('pos').textContent=(mode==='wrong')?`拿下 ${sessionDone} 个`:`今天 ${sessionDone} 张 · 正确率 ${acc}%`;
+    els('pos').textContent=(mode==='wrong')?`拿下 ${sessionDone} 个`:`今天总共 ${dDone} 张 · 正确率 ${acc}%`;
     els('result').textContent=(mode==='wrong')?'':`🔥 连击 ${st} 天`;
     els('result').className='result ok';
     els('meaning').textContent=(mode==='wrong')?t('conquered'):t('tomorrow');
@@ -763,7 +766,9 @@ function grade(right){
   h.seen++;if(isNew)h.new++;state.history[tt]=h;
   const keys=Object.keys(state.history).sort();
   while(keys.length>21)delete state.history[keys.shift()];
-  sessionDone++; if(right)sessionRight++; save();
+  sessionDone++; if(right)sessionRight++;
+  state.day.done=(state.day.done||0)+1;
+  save();
 }
 
 function next(){
@@ -855,7 +860,7 @@ els('newPerDay').onchange=e=>{state.settings.newPerDay=Math.max(0,Number(e.targe
 
 els('btnReset').onclick=()=>{
   if(!confirm(t('resetConfirm')))return;
-  state={v:4,settings:state.settings,day:{date:todayStr(),newCount:0},words:{},history:{},custom:state.custom||[]};
+  state={v:4,settings:state.settings,day:{date:todayStr(),newCount:0,done:0,goal:0},words:{},history:{},custom:state.custom||[]};
   save();rebuildDeck();buildQueue();render();
 };
 
